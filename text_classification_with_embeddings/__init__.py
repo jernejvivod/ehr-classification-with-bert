@@ -7,5 +7,8 @@ class Tasks(Enum):
 
 
 class EntityEmbeddingMethod(Enum):
-    AGGREGATED_WORD2VEC = 'aggregated-word2vec'
+    WORD2VEC = 'word2vec'
     STARSPACE = 'starspace'
+
+
+LABEL_WORD_PREFIX = '__label__'

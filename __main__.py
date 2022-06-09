@@ -8,9 +8,14 @@ from text_classification_with_embeddings.util.argparse import file_path, dir_pat
 def main(**kwargs):
     # COMPUTING DOCUMENT EMBEDDINGS FROM fastText FORMAT INPUT
     if kwargs['task'] == Tasks.GET_ENTITY_EMBEDDINGS.value:
-        if kwargs['starspace_path'] is None:
-            raise ValueError('path to StarSpace executable must be defined when using StarSpace')
-        embed.get_starspace_entity_embeddings(kwargs['starspace_path'], kwargs['train_data_path'], kwargs['output_dir_path'], kwargs['starspace_args'])
+        if kwargs['method'] == EntityEmbeddingMethod.STARSPACE.value:
+            if kwargs['starspace_path'] is None:
+                raise ValueError('path to StarSpace executable must be defined when using StarSpace')
+            embed.get_starspace_entity_embeddings(kwargs['starspace_path'], kwargs['train_data_path'], kwargs['output_dir_path'], kwargs['starspace_args'])
+        elif kwargs['method'] == EntityEmbeddingMethod.WORD2VEC.value:
+            embed.get_word2vec_embeddings(kwargs['train_data_path'], kwargs['output_dir_path'], kwargs['word2vec_args'])
+    else:
+        raise NotImplementedError('Task {0} not implemented'.format(kwargs['task']))
 
 
 if __name__ == '__main__':
@@ -26,6 +31,7 @@ if __name__ == '__main__':
     get_entity_embeddings_parser.add_argument('--output-dir-path', type=dir_path, default='.', help='Path to directory in which to save the embeddings')
     get_entity_embeddings_parser.add_argument('--starspace-path', type=file_path, help='Path to StarSpace executable')
     get_entity_embeddings_parser.add_argument('--starspace-args', type=str, default='', help='Arguments passed to StarSpace implementation (enclose in quotes)')
+    get_entity_embeddings_parser.add_argument('--word2vec-args', type=str, default='', help='Arguments passed to Word2Vec implementation (enclose in quotes)')
 
     # DOCUMENT EMBEDDING EVALUATION
     evaluate_parser = subparsers.add_parser(Tasks.EVALUATE.value)
