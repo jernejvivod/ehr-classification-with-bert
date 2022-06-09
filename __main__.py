@@ -14,6 +14,10 @@ def main(**kwargs):
             embed.get_starspace_entity_embeddings(kwargs['starspace_path'], kwargs['train_data_path'], kwargs['output_dir_path'], kwargs['starspace_args'])
         elif kwargs['method'] == EntityEmbeddingMethod.WORD2VEC.value:
             embed.get_word2vec_embeddings(kwargs['train_data_path'], kwargs['output_dir_path'], kwargs['word2vec_args'])
+        elif kwargs['method'] == EntityEmbeddingMethod.FASTTEXT.value:
+            embed.get_fasttext_embeddings(kwargs['train_data_path'], kwargs['output_dir_path'], kwargs['fasttext_args'])
+        else:
+            raise NotImplementedError('Method {0} not implemented'.format(kwargs['method']))
     else:
         raise NotImplementedError('Task {0} not implemented'.format(kwargs['task']))
 
@@ -32,6 +36,7 @@ if __name__ == '__main__':
     get_entity_embeddings_parser.add_argument('--starspace-path', type=file_path, help='Path to StarSpace executable')
     get_entity_embeddings_parser.add_argument('--starspace-args', type=str, default='', help='Arguments passed to StarSpace implementation (enclose in quotes)')
     get_entity_embeddings_parser.add_argument('--word2vec-args', type=str, default='', help='Arguments passed to Word2Vec implementation (enclose in quotes)')
+    get_entity_embeddings_parser.add_argument('--fasttext-args', type=str, default='', help='Arguments passed to fastText implementation (enclose in quotes)')
 
     # DOCUMENT EMBEDDING EVALUATION
     evaluate_parser = subparsers.add_parser(Tasks.EVALUATE.value)

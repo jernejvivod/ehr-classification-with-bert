@@ -9,6 +9,7 @@ class Tasks(Enum):
 class EntityEmbeddingMethod(Enum):
     WORD2VEC = 'word2vec'
     STARSPACE = 'starspace'
+    FASTTEXT = 'fasttext'
 
 
 LABEL_WORD_PREFIX = '__label__'

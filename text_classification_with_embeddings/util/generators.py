@@ -9,6 +9,11 @@ class SentenceIteratorFastTextFormat(abc.Iterator):
     def __init__(self, file_path: str):
         self._file_path = file_path
 
+    def __len__(self):
+        c = sum(1 for _ in self._f)
+        self._f.seek(0)
+        return c
+
     def __next__(self):
         try:
             line_nxt = next(self._f)
