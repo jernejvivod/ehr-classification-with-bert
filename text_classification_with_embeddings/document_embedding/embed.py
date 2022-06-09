@@ -1,8 +1,10 @@
 import os
 import subprocess
 
+import numpy as np
 from gensim.models import Word2Vec, FastText
 
+from text_classification_with_embeddings import LABEL_WORD_PREFIX
 from text_classification_with_embeddings.util.arguments import process_param_spec
 from text_classification_with_embeddings.util.errors import EmbeddingError
 from text_classification_with_embeddings.util.generators import SentenceIteratorFastTextFormat
@@ -81,3 +83,39 @@ def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args
             for idx, emb in enumerate(ft_model.wv.vectors):
                 key = ft_model.wv.index_to_key[idx]
                 f.write(key + '\t' + '\t'.join(map(str, emb)) + '\n')
+
+
+def get_aggregate_embedding(features: str, word_to_embedding):
+    """get embedding for a new set of features (new document).
+
+    :param features: features in fastText format
+    :param word_to_embedding: mapping of words to their embeddings
+    :return: aggregate vector composed from individual entity embeddings
+    """
+
+    # construct aggregate embedding
+    emb_len = len(next(iter(word_to_embedding.values())))
+    words = [w for w in features.split() if LABEL_WORD_PREFIX not in w]
+    aggregate_emb = np.zeros(emb_len, dtype=float)
+    count = 0
+    for word in words:
+        if word in word_to_embedding:
+            aggregate_emb += word_to_embedding[word]
+            count += 1
+    aggregate_emb /= count
+
+    return aggregate_emb
+
+
+def get_word_to_embedding(path_to_embeddings: str):
+    """get dictionary mapping words to their embeddings.
+
+    :param path_to_embeddings: path embeddings
+    :return: dictionary mapping words to their embeddings
+    """
+    with open(path_to_embeddings, 'r') as f:
+        word_to_embedding = dict()
+        for emb in f:
+            emb_l = emb.strip().split('\t')
+            word_to_embedding[emb_l[0]] = np.asarray(emb_l[1:], dtype=float)
+        return word_to_embedding

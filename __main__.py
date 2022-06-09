@@ -18,6 +18,10 @@ def main(**kwargs):
             embed.get_fasttext_embeddings(kwargs['train_data_path'], kwargs['output_dir_path'], kwargs['fasttext_args'])
         else:
             raise NotImplementedError('Method {0} not implemented'.format(kwargs['method']))
+    if kwargs['task'] == Tasks.TRAIN_TEST_SPLIT.value:
+        pass
+    if kwargs['task'] == Tasks.EVALUATE.value:
+        pass
     else:
         raise NotImplementedError('Task {0} not implemented'.format(kwargs['task']))
 
@@ -38,9 +42,16 @@ if __name__ == '__main__':
     get_entity_embeddings_parser.add_argument('--word2vec-args', type=str, default='', help='Arguments passed to Word2Vec implementation (enclose in quotes)')
     get_entity_embeddings_parser.add_argument('--fasttext-args', type=str, default='', help='Arguments passed to fastText implementation (enclose in quotes)')
 
+    # DATA TRAIN-TEST SPLIT
+    train_test_split_parser = subparsers.add_parser(Tasks.TRAIN_TEST_SPLIT.value)
+    train_test_split_parser.add_argument('--data-path', type=file_path, required=True, help='Path to file containing the data in fastText format')
+    train_test_split_parser.add_argument('--train-size', type=float, default=0.8, help='Proportion of the dataset to include in the train split')
+
     # DOCUMENT EMBEDDING EVALUATION
     evaluate_parser = subparsers.add_parser(Tasks.EVALUATE.value)
-    # TODO path to training document embeddings
+    evaluate_parser.add_argument('--test-data-path', type=file_path, required=True, help='Path to test data in fastText format')
+    evaluate_parser.add_argument('--embeddings-path', type=file_path, required=True, help='Path to stored feature embeddings')
+    evaluate_parser.add_argument('--results-path', type=dir_path, default='.', help='Path to directory in which to save the results')
 
     args = parser.parse_args()
     main(**vars(args))

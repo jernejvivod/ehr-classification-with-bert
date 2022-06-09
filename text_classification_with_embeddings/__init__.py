@@ -3,6 +3,7 @@ from enum import Enum
 
 class Tasks(Enum):
     GET_ENTITY_EMBEDDINGS = 'get-entity-embeddings'
+    TRAIN_TEST_SPLIT = 'train-test-split'
     EVALUATE = 'evaluate'
 
 
