@@ -10,7 +10,7 @@ def main(**kwargs):
     if kwargs['task'] == Tasks.GET_ENTITY_EMBEDDINGS.value:
         if kwargs['starspace_path'] is None:
             raise ValueError('path to StarSpace executable must be defined when using StarSpace')
-        embed.get_starspace_entity_embeddings(kwargs['starspace_path'], kwargs['train_data_path'], kwargs['output_dir_path'])
+        embed.get_starspace_entity_embeddings(kwargs['starspace_path'], kwargs['train_data_path'], kwargs['output_dir_path'], kwargs['starspace_args'])
 
 
 if __name__ == '__main__':
@@ -25,6 +25,7 @@ if __name__ == '__main__':
     get_entity_embeddings_parser.add_argument('--train-data-path', type=file_path, required=True, help='Path to file containing the training data in fastText format')
     get_entity_embeddings_parser.add_argument('--output-dir-path', type=dir_path, default='.', help='Path to directory in which to save the embeddings')
     get_entity_embeddings_parser.add_argument('--starspace-path', type=file_path, help='Path to StarSpace executable')
+    get_entity_embeddings_parser.add_argument('--starspace-args', type=str, default='', help='Arguments passed to StarSpace implementation (enclose in quotes)')
 
     # DOCUMENT EMBEDDING EVALUATION
     evaluate_parser = subparsers.add_parser(Tasks.EVALUATE.value)
