@@ -7,7 +7,7 @@ from gensim.models import Word2Vec, FastText
 from text_classification_with_embeddings import LABEL_WORD_PREFIX
 from text_classification_with_embeddings.util.arguments import process_param_spec
 from text_classification_with_embeddings.util.errors import EmbeddingError
-from text_classification_with_embeddings.util.generators import SentenceIteratorFastTextFormat
+from text_classification_with_embeddings.util.iterators import SentenceIteratorFastTextFormat
 
 
 def get_starspace_entity_embeddings(starspace_path: str, train_data_path: str, output_dir: str, starspace_args: str):
@@ -102,7 +102,8 @@ def get_aggregate_embedding(features: str, word_to_embedding):
         if word in word_to_embedding:
             aggregate_emb += word_to_embedding[word]
             count += 1
-    aggregate_emb /= count
+    if count > 0:
+        aggregate_emb /= count
 
     return aggregate_emb
 
