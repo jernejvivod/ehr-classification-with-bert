@@ -1,7 +1,7 @@
 from sklearn import metrics
 
 from text_classification_with_embeddings import LABEL_WORD_PREFIX
-from text_classification_with_embeddings.evaluation.visualization import write_classification_report
+from text_classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix
 
 
 def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
@@ -35,3 +35,6 @@ def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
     # write classification report
     cr = metrics.classification_report(y_true, y_pred)
     write_classification_report(cr, results_path, method)
+
+    # visualize confusion matrix
+    plot_confusion_matrix(y_pred, y_true, ['0', '1'], ['0', '1'], results_path, method)  # TODO mapping from target values to names
