@@ -53,7 +53,7 @@ def task_evaluate(**kwargs):
         clf = get_clf_with_internal_clf(word_to_embedding, kwargs['train_data_path'], None, kwargs['internal_clf_args'])
     else:
         raise NotImplementedError('Method {0} not implemented'.format(kwargs['method']))
-    evaluate(clf, kwargs['test_data_path'], kwargs['results_path'])
+    evaluate(clf, kwargs['method'], kwargs['test_data_path'], kwargs['results_path'])
 
 
 if __name__ == '__main__':

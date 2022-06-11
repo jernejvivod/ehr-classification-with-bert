@@ -1,10 +1,14 @@
+from sklearn import metrics
+
 from text_classification_with_embeddings import LABEL_WORD_PREFIX
+from text_classification_with_embeddings.evaluation.visualization import write_classification_report
 
 
-def evaluate(clf, test_data_path: str, results_path: str) -> None:
+def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
     """evaluate embedding-based classifier on test data.
 
     :param clf: classifier function that outputs the predicted label for a sample (fastText format document)
+    :param method: embedding method used
     :param test_data_path: path to test data in fastText format
     :param results_path: path to directory in which to store the results
     """
@@ -28,4 +32,6 @@ def evaluate(clf, test_data_path: str, results_path: str) -> None:
             pred_label = clf(sample)
             y_pred.append(pred_label)
 
-    print()  # TODO visualize results
+    # write classification report
+    cr = metrics.classification_report(y_true, y_pred)
+    write_classification_report(cr, results_path, method)
