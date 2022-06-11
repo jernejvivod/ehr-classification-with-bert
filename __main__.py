@@ -5,7 +5,8 @@ from text_classification_with_embeddings.document_embedding import embed
 from text_classification_with_embeddings.document_embedding.embed import get_word_to_embedding
 from text_classification_with_embeddings.evaluation.evaluate import evaluate
 from text_classification_with_embeddings.evaluation.get_clf import get_clf_with_internal_clf, get_clf_starspace
-from text_classification_with_embeddings.util.argparse import file_path, dir_path
+from text_classification_with_embeddings.evaluation.train_test_split import get_train_test_split
+from text_classification_with_embeddings.util.argparse import file_path, dir_path, proportion_float
 
 
 def main(**kwargs):
@@ -14,7 +15,7 @@ def main(**kwargs):
         task_get_entity_embeddings(**kwargs)
     elif kwargs['task'] == Tasks.TRAIN_TEST_SPLIT.value:
         # OBTAINING FILES CORRESPONDING TO A TRAIN-TEST SPLIT
-        pass
+        task_train_test_split(**kwargs)
     elif kwargs['task'] == Tasks.EVALUATE.value:
         # EVALUATING EMBEDDING-BASED CLASSIFIERS
         task_evaluate(**kwargs)
@@ -38,6 +39,10 @@ def task_get_entity_embeddings(**kwargs):
         raise NotImplementedError('Method {0} not implemented'.format(kwargs['method']))
 
 
+def task_train_test_split(**kwargs):
+    get_train_test_split(kwargs['data_path'], kwargs['output_dir'], kwargs['train_size'], not kwargs['no_stratify'])
+
+
 def task_evaluate(**kwargs):
     word_to_embedding = get_word_to_embedding(kwargs['embeddings_path'])
     if kwargs['method'] == EntityEmbeddingMethod.STARSPACE.value:
@@ -45,7 +50,7 @@ def task_evaluate(**kwargs):
         clf = get_clf_starspace(word_to_embedding)
     elif kwargs['method'] == EntityEmbeddingMethod.WORD2VEC.value or kwargs['method'] == EntityEmbeddingMethod.FASTTEXT.value:
         # WORD2VEC or FASTTEXT
-        clf = get_clf_with_internal_clf(word_to_embedding, kwargs['train_data_path'], kwargs['internal_clf_args'])
+        clf = get_clf_with_internal_clf(word_to_embedding, kwargs['train_data_path'], None, kwargs['internal_clf_args'])
     else:
         raise NotImplementedError('Method {0} not implemented'.format(kwargs['method']))
     evaluate(clf, kwargs['test_data_path'], kwargs['results_path'])
@@ -73,7 +78,9 @@ if __name__ == '__main__':
     # DATA TRAIN-TEST SPLIT
     train_test_split_parser = subparsers.add_parser(Tasks.TRAIN_TEST_SPLIT.value)
     train_test_split_parser.add_argument('--data-path', type=file_path, required=True, help='Path to file containing the data in fastText format')
-    train_test_split_parser.add_argument('--train-size', type=float, default=0.8, help='Proportion of the dataset to include in the train split')
+    train_test_split_parser.add_argument('--train-size', type=proportion_float, default=0.8, help='Proportion of the dataset to include in the train split')
+    train_test_split_parser.add_argument('--no-stratify', action='store_true', help='Do not split the data in a stratified fashion')
+    train_test_split_parser.add_argument('--output-dir', type=dir_path, default='.', help='Path to directory in which to save the resulting files containing the training and test data')
 
     # DOCUMENT EMBEDDING EVALUATION
     evaluate_parser = subparsers.add_parser(Tasks.EVALUATE.value)

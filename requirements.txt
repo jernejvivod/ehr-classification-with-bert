@@ -4,3 +4,4 @@ scipy==1.8.1
 smart-open==6.0.0
 
 scikit-learn~=1.1.1
+dask~=2022.5.2
