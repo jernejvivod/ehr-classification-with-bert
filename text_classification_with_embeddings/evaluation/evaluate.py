@@ -1,7 +1,9 @@
 import numpy as np
+import tqdm
 from sklearn import metrics
 
 from text_classification_with_embeddings import LABEL_WORD_PREFIX
+from text_classification_with_embeddings.evaluation import logger
 from text_classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix
 
 
@@ -19,8 +21,9 @@ def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
     y_pred = []
 
     # go over test data and compute predicted labels
+    logger.info('Computed predicted labels')
     with open(test_data_path, 'r') as f:
-        for idx, sample in enumerate(f):
+        for idx, sample in tqdm.tqdm(enumerate(f), desc='Computing predicted labels', unit='samples'):
 
             # find ground-truth label
             label_search = [el for el in sample.split() if LABEL_WORD_PREFIX in el]
@@ -32,6 +35,8 @@ def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
             # get predicted label
             pred_label = clf(sample)
             y_pred.append(pred_label)
+
+    logger.info('Saving evaluation results')
 
     # write classification report
     cr = metrics.classification_report(y_true, y_pred)

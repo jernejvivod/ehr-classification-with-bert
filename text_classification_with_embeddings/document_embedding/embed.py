@@ -5,6 +5,7 @@ import numpy as np
 from gensim.models import Word2Vec, FastText
 
 from text_classification_with_embeddings import LABEL_WORD_PREFIX
+from text_classification_with_embeddings.document_embedding import logger
 from text_classification_with_embeddings.util.arguments import process_param_spec
 from text_classification_with_embeddings.util.errors import EmbeddingError
 from text_classification_with_embeddings.util.iterators import SentenceIteratorFastTextFormat
@@ -27,6 +28,7 @@ def get_starspace_entity_embeddings(starspace_path: str, train_data_path: str, o
     if p.returncode != 0:
         raise EmbeddingError('StarSpace', p.returncode)
 
+    logger.info('Successfuly saved StarSpace embeddings')
     print('Entity embeddings saved to {0}'.format(model_path))
 
 
@@ -51,6 +53,7 @@ def get_word2vec_embeddings(train_data_path: str, output_dir: str, word2vec_args
         w2v_model = Word2Vec(sentences=sent_it, **params)
 
         # save embeddings in TSV format
+        logger.info('Saving computed Word2Vec embeddings')
         output_file_name = 'word2vec_model.tsv'
         with open(os.path.join(output_dir, output_file_name), 'w') as f:
             for idx, emb in enumerate(w2v_model.wv.vectors):
@@ -82,6 +85,7 @@ def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args
         ft_model.train(corpus_iterable=sent_it, total_examples=len(sent_it), epochs=10)
 
         # save embeddings in TSV format
+        logger.info('Saving computed fastText embeddings')
         output_file_name = 'fasttext_model.tsv'
         with open(os.path.join(output_dir, output_file_name), 'w') as f:
             for idx, emb in enumerate(ft_model.wv.vectors):
@@ -119,6 +123,8 @@ def get_word_to_embedding(path_to_embeddings: str) -> dict:
     :param path_to_embeddings: path embeddings
     :return: dictionary mapping words to their embeddings
     """
+
+    logger.info('Obtaining mapping from words to their embeddings')
     with open(path_to_embeddings, 'r') as f:
         word_to_embedding = dict()
         for emb in f:

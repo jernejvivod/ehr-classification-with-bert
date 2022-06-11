@@ -4,6 +4,7 @@ import dask.dataframe as dd
 import numpy as np
 from sklearn import model_selection
 
+from text_classification_with_embeddings.evaluation import logger
 from text_classification_with_embeddings.util.files import delete_file
 
 
@@ -15,6 +16,8 @@ def get_train_test_split(data_path: str, output_dir: str, train_size: float = 0.
     :param train_size: proportion of the dataset to include in the training split
     :param stratify: split the data in a stratified fashion
     """
+
+    logger.info('Performing train-test split with with train_size={0}'.format(train_size))
 
     # parse data, extract labels and split
     samples = dd.read_csv(data_path).repartition(3)

@@ -4,8 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import ConfusionMatrixDisplay
 
-
-# from . import logger
+from text_classification_with_embeddings.evaluation import logger
 
 
 def write_classification_report(cr: str, dir_path: str, method: str) -> None:
@@ -17,7 +16,7 @@ def write_classification_report(cr: str, dir_path: str, method: str) -> None:
     """
 
     output_file_path = os.path.abspath(os.path.join(dir_path, method + '_cr.txt'))
-    # logger.info('Writing classification report to {0}'.format(output_file_path))
+    logger.info('Writing classification report to {0}'.format(output_file_path))
     with open(output_file_path, 'w') as f:
         f.write(cr)
 
@@ -34,7 +33,7 @@ def plot_confusion_matrix(predictions, y_test, labels, class_names, plot_path: s
     """
 
     output_file_path = os.path.abspath(os.path.join(plot_path, method + '.png'))
-    # logger.info('Saving confusion matrix plot to {0}'.format(output_file_path))
+    logger.info('Saving confusion matrix plot to {0}'.format(output_file_path))
 
     # Plot confusion matrix and save plot.
     np.set_printoptions(precision=2)

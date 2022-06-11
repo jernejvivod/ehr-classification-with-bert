@@ -1,6 +1,7 @@
 import argparse
 
 from text_classification_with_embeddings import Tasks, EntityEmbeddingMethod
+from text_classification_with_embeddings import logger
 from text_classification_with_embeddings.document_embedding import embed
 from text_classification_with_embeddings.document_embedding.embed import get_word_to_embedding
 from text_classification_with_embeddings.evaluation.evaluate import evaluate
@@ -12,12 +13,15 @@ from text_classification_with_embeddings.util.argparse import file_path, dir_pat
 def main(**kwargs):
     if kwargs['task'] == Tasks.GET_ENTITY_EMBEDDINGS.value:
         # COMPUTING DOCUMENT EMBEDDINGS FROM fastText FORMAT INPUT
+        logger.info('Obtaining entity embeddings')
         task_get_entity_embeddings(**kwargs)
     elif kwargs['task'] == Tasks.TRAIN_TEST_SPLIT.value:
         # OBTAINING FILES CORRESPONDING TO A TRAIN-TEST SPLIT
+        logger.info('Performing train-test split')
         task_train_test_split(**kwargs)
     elif kwargs['task'] == Tasks.EVALUATE.value:
         # EVALUATING EMBEDDING-BASED CLASSIFIERS
+        logger.info('Performing evaluation')
         task_evaluate(**kwargs)
     else:
         raise NotImplementedError('Task {0} not implemented'.format(kwargs['task']))
@@ -26,14 +30,17 @@ def main(**kwargs):
 def task_get_entity_embeddings(**kwargs):
     if kwargs['method'] == EntityEmbeddingMethod.STARSPACE.value:
         # STARSPACE
+        logger.info('using StarSpace method')
         if kwargs['starspace_path'] is None:
             raise ValueError('path to StarSpace executable must be defined when using StarSpace')
         embed.get_starspace_entity_embeddings(kwargs['starspace_path'], kwargs['train_data_path'], kwargs['output_dir_path'], kwargs['starspace_args'])
     elif kwargs['method'] == EntityEmbeddingMethod.WORD2VEC.value:
         # WORD2VEC
+        logger.info('using Word2Vec method')
         embed.get_word2vec_embeddings(kwargs['train_data_path'], kwargs['output_dir_path'], kwargs['word2vec_args'])
     elif kwargs['method'] == EntityEmbeddingMethod.FASTTEXT.value:
         # FASTTEXT
+        logger.info('using fastText method')
         embed.get_fasttext_embeddings(kwargs['train_data_path'], kwargs['output_dir_path'], kwargs['fasttext_args'])
     else:
         raise NotImplementedError('Method {0} not implemented'.format(kwargs['method']))
@@ -47,9 +54,11 @@ def task_evaluate(**kwargs):
     word_to_embedding = get_word_to_embedding(kwargs['embeddings_path'])
     if kwargs['method'] == EntityEmbeddingMethod.STARSPACE.value:
         # STARSPACE
+        logger.info('Evaluating Starspace method')
         clf = get_clf_starspace(word_to_embedding)
     elif kwargs['method'] == EntityEmbeddingMethod.WORD2VEC.value or kwargs['method'] == EntityEmbeddingMethod.FASTTEXT.value:
         # WORD2VEC or FASTTEXT
+        logger.info('Evaluating {0} method'.format('Word2Vec' if kwargs['method'] == EntityEmbeddingMethod.WORD2VEC.value else 'fastText'))
         clf = get_clf_with_internal_clf(word_to_embedding, kwargs['train_data_path'], None, kwargs['internal_clf_args'])
     else:
         raise NotImplementedError('Method {0} not implemented'.format(kwargs['method']))

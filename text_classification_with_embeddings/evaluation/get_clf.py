@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from text_classification_with_embeddings import LABEL_WORD_PREFIX
 from text_classification_with_embeddings.document_embedding.embed import get_aggregate_embedding
+from text_classification_with_embeddings.evaluation import logger
 from text_classification_with_embeddings.util.arguments import process_param_spec
 
 
@@ -21,6 +22,9 @@ def get_clf_with_internal_clf(word_to_embedding: dict, training_data_path: str, 
     # train internal classifier
     embeddings = []
     target = []
+
+    logger.info('Obtaining classifier')
+    logger.info('Computing training data for internal classifier')
     with open(training_data_path, 'r') as f:
         for idx, t_sample in enumerate(f):
             embeddings.append(get_aggregate_embedding(t_sample, word_to_embedding))
@@ -32,6 +36,7 @@ def get_clf_with_internal_clf(word_to_embedding: dict, training_data_path: str, 
     x_train = np.vstack(embeddings)
 
     # get additional parameters and train
+    logger.info('Training internal classifier')
     clf_internal_params = process_param_spec(internal_clf_args)
     if clf_internal is None:
         clf_internal = RandomForestClassifier(**clf_internal_params).fit(x_train, target)
@@ -52,6 +57,7 @@ def get_clf_starspace(word_to_embedding: dict) -> Callable[[str], str]:
     :return: function that takes a sample (document in fastText format) and predicts its label
     """
 
+    logger.info('Obtaining classifier')
     label_embeddings = [(key, word_to_embedding[key]) for key in word_to_embedding.keys() if LABEL_WORD_PREFIX in key]
     index_to_label_key = [e[0] for e in label_embeddings]
     label_emb_mat = np.vstack([e[1] for e in label_embeddings])
