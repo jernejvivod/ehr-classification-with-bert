@@ -10,7 +10,7 @@ from text_classification_with_embeddings.util.errors import EmbeddingError
 from text_classification_with_embeddings.util.iterators import SentenceIteratorFastTextFormat
 
 
-def get_starspace_entity_embeddings(starspace_path: str, train_data_path: str, output_dir: str, starspace_args: str):
+def get_starspace_entity_embeddings(starspace_path: str, train_data_path: str, output_dir: str, starspace_args: str) -> None:
     """Get entity embeddings using StarSpace.
 
     :param starspace_path: path to StarSpace executable
@@ -30,7 +30,7 @@ def get_starspace_entity_embeddings(starspace_path: str, train_data_path: str, o
     print('Entity embeddings saved to {0}'.format(model_path))
 
 
-def get_word2vec_embeddings(train_data_path: str, output_dir: str, word2vec_args: str):
+def get_word2vec_embeddings(train_data_path: str, output_dir: str, word2vec_args: str) -> None:
     """Get entity embeddings using Word2Vec.
 
     :param train_data_path: path to training data in fastText format
@@ -51,13 +51,16 @@ def get_word2vec_embeddings(train_data_path: str, output_dir: str, word2vec_args
         w2v_model = Word2Vec(sentences=sent_it, **params)
 
         # save embeddings in TSV format
-        with open(os.path.join(output_dir, 'word2vec_model.tsv'), 'w') as f:
+        output_file_name = 'word2vec_model.tsv'
+        with open(os.path.join(output_dir, output_file_name), 'w') as f:
             for idx, emb in enumerate(w2v_model.wv.vectors):
                 key = w2v_model.wv.index_to_key[idx]
                 f.write(key + '\t' + '\t'.join(map(str, emb)) + '\n')
 
+    print('Entity embeddings saved to {0}'.format(output_dir + output_file_name))
 
-def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args: str):
+
+def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args: str) -> None:
     """Get entity embeddings using fastText.
 
     :param train_data_path: path to training data in fastText format
@@ -79,13 +82,16 @@ def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args
         ft_model.train(corpus_iterable=sent_it, total_examples=len(sent_it), epochs=10)
 
         # save embeddings in TSV format
-        with open(os.path.join(output_dir, 'fasttext_model.tsv'), 'w') as f:
+        output_file_name = 'fasttext_model.tsv'
+        with open(os.path.join(output_dir, output_file_name), 'w') as f:
             for idx, emb in enumerate(ft_model.wv.vectors):
                 key = ft_model.wv.index_to_key[idx]
                 f.write(key + '\t' + '\t'.join(map(str, emb)) + '\n')
 
+    print('Entity embeddings saved to {0}'.format(output_dir + output_file_name))
 
-def get_aggregate_embedding(features: str, word_to_embedding):
+
+def get_aggregate_embedding(features: str, word_to_embedding) -> np.ndarray:
     """get embedding for a new set of features (new document).
 
     :param features: features in fastText format
@@ -104,11 +110,10 @@ def get_aggregate_embedding(features: str, word_to_embedding):
             count += 1
     if count > 0:
         aggregate_emb /= count
-
     return aggregate_emb
 
 
-def get_word_to_embedding(path_to_embeddings: str):
+def get_word_to_embedding(path_to_embeddings: str) -> dict:
     """get dictionary mapping words to their embeddings.
 
     :param path_to_embeddings: path embeddings

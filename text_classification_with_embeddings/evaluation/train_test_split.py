@@ -4,7 +4,7 @@ import dask.dataframe as dd
 import numpy as np
 from sklearn import model_selection
 
-from text_classification_with_embeddings.util.files import clear_file
+from text_classification_with_embeddings.util.files import delete_file
 
 
 def get_train_test_split(data_path: str, output_dir: str, train_size: float = 0.8, stratify: bool = True) -> None:
@@ -25,8 +25,8 @@ def get_train_test_split(data_path: str, output_dir: str, train_size: float = 0.
     data_file_path = pathlib.Path(data_path)
     data_train_path = pathlib.Path(output_dir).joinpath(data_file_path.stem + '_train' + data_file_path.suffix)
     data_test_path = pathlib.Path(output_dir).joinpath(data_file_path.stem + '_test' + data_file_path.suffix)
-    clear_file(data_train_path)
-    clear_file(data_test_path)
+    delete_file(data_train_path)
+    delete_file(data_test_path)
 
     # write data
     for partition in samples.partitions:

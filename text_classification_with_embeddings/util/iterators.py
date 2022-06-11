@@ -14,7 +14,7 @@ class SentenceIteratorFastTextFormat(abc.Iterator):
         self._f.seek(0)
         return c
 
-    def __next__(self):
+    def __next__(self) -> str:
         try:
             line_nxt = next(self._f)
             return [word for word in line_nxt.split() if LABEL_WORD_PREFIX not in word]

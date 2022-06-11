@@ -1,4 +1,4 @@
-def process_param_spec(params_str: str):
+def process_param_spec(params_str: str) -> dict:
     """Construction dictionary from function parameters specified using the command-line interface
     with key-value pairs (val=3).
 

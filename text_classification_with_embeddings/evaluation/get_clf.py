@@ -1,3 +1,5 @@
+from typing import Callable
+
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
@@ -6,7 +8,7 @@ from text_classification_with_embeddings.document_embedding.embed import get_agg
 from text_classification_with_embeddings.util.arguments import process_param_spec
 
 
-def get_clf_with_internal_clf(word_to_embedding: dict, training_data_path: str, clf_internal=None, internal_clf_args: str = ''):
+def get_clf_with_internal_clf(word_to_embedding: dict, training_data_path: str, clf_internal=None, internal_clf_args: str = '') -> Callable[[str], str]:
     """Get internal classifier based classifier.
 
     :param word_to_embedding: mapping of words to their embeddings
@@ -43,7 +45,7 @@ def get_clf_with_internal_clf(word_to_embedding: dict, training_data_path: str, 
     return classify
 
 
-def get_clf_starspace(word_to_embedding: dict):
+def get_clf_starspace(word_to_embedding: dict) -> Callable[[str], str]:
     """Get StarSpace-based classifier.
 
     :param word_to_embedding: mapping of words to their embeddings

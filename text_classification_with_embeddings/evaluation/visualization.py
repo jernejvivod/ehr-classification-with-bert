@@ -22,7 +22,7 @@ def write_classification_report(cr: str, dir_path: str, method: str) -> None:
         f.write(cr)
 
 
-def plot_confusion_matrix(predictions, y_test, labels, class_names, plot_path: str, method):
+def plot_confusion_matrix(predictions, y_test, labels, class_names, plot_path: str, method) -> None:
     """Plot confusion matrix
 
     :param predictions: predictions of the classifier

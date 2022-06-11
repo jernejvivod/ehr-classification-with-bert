@@ -1,7 +1,11 @@
 import os
 
 
-def clear_file(path):
+def delete_file(path) -> None:
+    """delete file if exists
+
+    :param path: path to file
+    """
     try:
         if os.path.isfile(path):
             os.remove(path)
