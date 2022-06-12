@@ -4,8 +4,8 @@ import dask.dataframe as dd
 import numpy as np
 from sklearn import model_selection
 
-from text_classification_with_embeddings.evaluation import logger
-from text_classification_with_embeddings.util.files import delete_file
+from classification_with_embeddings.evaluation import logger
+from classification_with_embeddings.util.files import delete_file
 
 
 def get_train_test_split(data_path: str, output_dir: str, train_size: float = 0.8, stratify: bool = True) -> None:

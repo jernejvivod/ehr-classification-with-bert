@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import ConfusionMatrixDisplay
 
-from text_classification_with_embeddings.evaluation import logger
+from classification_with_embeddings.evaluation import logger
 
 
 def write_classification_report(cr: str, dir_path: str, method: str) -> None:

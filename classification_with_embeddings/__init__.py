@@ -20,4 +20,10 @@ class EntityEmbeddingMethod(Enum):
     FASTTEXT = 'fasttext'
 
 
+class InternalClassifier(Enum):
+    LOGISTIC_REGRESSION = 'logistic-regression'
+    RANDOM_FOREST = 'random-forest'
+    SVC = 'svc'
+
+
 LABEL_WORD_PREFIX = '__label__'

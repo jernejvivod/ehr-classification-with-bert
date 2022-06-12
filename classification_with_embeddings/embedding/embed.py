@@ -4,11 +4,11 @@ import subprocess
 import numpy as np
 from gensim.models import Word2Vec, FastText
 
-from text_classification_with_embeddings import LABEL_WORD_PREFIX
-from text_classification_with_embeddings.document_embedding import logger
-from text_classification_with_embeddings.util.arguments import process_param_spec
-from text_classification_with_embeddings.util.errors import EmbeddingError
-from text_classification_with_embeddings.util.iterators import SentenceIteratorFastTextFormat
+from classification_with_embeddings import LABEL_WORD_PREFIX
+from classification_with_embeddings.embedding import logger
+from classification_with_embeddings.util.arguments import process_param_spec
+from classification_with_embeddings.util.errors import EmbeddingError
+from classification_with_embeddings.util.iterators import SentenceIteratorFastTextFormat
 
 
 def get_starspace_entity_embeddings(starspace_path: str, train_data_path: str, output_dir: str, starspace_args: str) -> None:

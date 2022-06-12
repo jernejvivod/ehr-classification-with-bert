@@ -2,9 +2,9 @@ import numpy as np
 import tqdm
 from sklearn import metrics
 
-from text_classification_with_embeddings import LABEL_WORD_PREFIX
-from text_classification_with_embeddings.evaluation import logger
-from text_classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix
+from classification_with_embeddings import LABEL_WORD_PREFIX
+from classification_with_embeddings.evaluation import logger
+from classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix
 
 
 def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:

@@ -1,6 +1,6 @@
 import collections.abc as abc
 
-from text_classification_with_embeddings import LABEL_WORD_PREFIX
+from classification_with_embeddings import LABEL_WORD_PREFIX
 
 
 class SentenceIteratorFastTextFormat(abc.Iterator):

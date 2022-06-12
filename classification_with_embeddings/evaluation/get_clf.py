@@ -3,10 +3,10 @@ from typing import Callable
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
-from text_classification_with_embeddings import LABEL_WORD_PREFIX
-from text_classification_with_embeddings.document_embedding.embed import get_aggregate_embedding
-from text_classification_with_embeddings.evaluation import logger
-from text_classification_with_embeddings.util.arguments import process_param_spec
+from classification_with_embeddings import LABEL_WORD_PREFIX
+from classification_with_embeddings.embedding.embed import get_aggregate_embedding
+from classification_with_embeddings.evaluation import logger
+from classification_with_embeddings.util.arguments import process_param_spec
 
 
 def get_clf_with_internal_clf(word_to_embedding: dict, training_data_path: str, clf_internal=None, internal_clf_args: str = '') -> Callable[[str], str]:
