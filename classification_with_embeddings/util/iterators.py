@@ -1,4 +1,5 @@
 import collections.abc as abc
+from typing import List
 
 from classification_with_embeddings import LABEL_WORD_PREFIX
 
@@ -14,7 +15,7 @@ class SentenceIteratorFastTextFormat(abc.Iterator):
         self._f.seek(0)
         return c
 
-    def __next__(self) -> str:
+    def __next__(self) -> List[str]:
         try:
             line_nxt = next(self._f)
             return [word for word in line_nxt.split() if LABEL_WORD_PREFIX not in word]

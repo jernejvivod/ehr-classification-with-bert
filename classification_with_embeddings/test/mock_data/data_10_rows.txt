@@ -1,0 +1,10 @@
+Lorem ipsum dolor sit amet consectetur adipiscing elit __label__0
+Vestibulum lacinia non ligula ac luctus __label__0
+Pellentesque fringilla ultricies nisl __label__1
+Etiam et neque odio __label__0
+Aenean in enim elementum, facilisis magna non, mattis ipsum __label__1
+Integer ac varius ex __label__1
+Ut in ipsum quis elit sagittis finibus __label__0
+Suspendisse efficitur cursus consequat __label__1
+Mauris vitae sem at enim convallis laoreet id ut eros __label__1
+Vestibulum rutrum velit sit amet felis imperdiet, at ultrices erat volutpat __label__0

@@ -1,0 +1,2 @@
+this is a simple test __label__0
+the quick brown fox jumped over the lazy dog __label__1

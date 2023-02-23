@@ -11,7 +11,7 @@ from classification_with_embeddings.util.errors import EmbeddingError
 from classification_with_embeddings.util.iterators import SentenceIteratorFastTextFormat
 
 
-def get_starspace_entity_embeddings(starspace_path: str, train_data_path: str, output_dir: str, starspace_args: str) -> None:
+def get_starspace_embeddings(starspace_path: str, train_data_path: str, output_dir: str, starspace_args: str) -> None:
     """Get entity embeddings using StarSpace.
 
     :param starspace_path: path to StarSpace executable
@@ -42,7 +42,6 @@ def get_word2vec_embeddings(train_data_path: str, output_dir: str, word2vec_args
 
     # compute and save entity embeddings
     with SentenceIteratorFastTextFormat(train_data_path) as sent_it:
-
         # if custom arguments specified, process
         if len(word2vec_args) > 0:
             params = process_param_spec(word2vec_args)
@@ -95,12 +94,14 @@ def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args
     print('Entity embeddings saved to {0}'.format(output_dir + output_file_name))
 
 
-def get_aggregate_embedding(features: str, word_to_embedding) -> np.ndarray:
+# TODO implement additional methodologies
+def get_aggregate_embedding(features: str, word_to_embedding: dict, method='average') -> np.ndarray:  # TODO method should be enum
     """get embedding for a new set of features (new document).
 
     :param features: features in fastText format
     :param word_to_embedding: mapping of words to their embeddings
-    :return: aggregate vector composed from individual entity embeddings
+    :param method: word embedding aggregation method to use
+    :return: aggregate vector composed of individual entity embeddings
     """
 
     # construct aggregate embedding
