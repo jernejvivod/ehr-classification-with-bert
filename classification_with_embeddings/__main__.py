@@ -15,7 +15,10 @@ from classification_with_embeddings.evaluation.train_test_split import get_train
 from classification_with_embeddings.util.argparse import file_path, dir_path, proportion_float
 
 
-def main(args):
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv
+
     # parse arguments
     parser = argparse.ArgumentParser(prog='classification-with-embeddings')
     subparsers = parser.add_subparsers(required=True, dest='task', help='Task to run')
@@ -53,7 +56,7 @@ def main(args):
     evaluate_parser.add_argument('--internal-clf-args', type=str, default='',
                                  help='Arguments passed to internal classifier if applicable (key-value pairs such as val=1 enclose in quotes with no commas separated by spaces)')
 
-    parsed_args = vars(parser.parse_args(args))
+    parsed_args = vars(parser.parse_args(argv[1:]))
 
     if parsed_args['task'] == Tasks.GET_ENTITY_EMBEDDINGS.value:
         # COMPUTING DOCUMENT EMBEDDINGS FROM fastText FORMAT INPUT
@@ -120,4 +123,4 @@ def task_evaluate(parsed_args: dict):
 
 
 if __name__ == '__main__':
-    sys.exit(sys.argv[1:])
+    sys.exit(main(sys.argv))
