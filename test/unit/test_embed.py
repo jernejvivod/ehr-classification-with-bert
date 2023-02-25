@@ -9,7 +9,7 @@ from classification_with_embeddings.embedding.embed import (
     get_word_to_embedding,
     get_aggregate_embedding
 )
-from classification_with_embeddings.test.test_utils import _get_relative_path
+from test.test_utils import _get_relative_path
 
 
 class TestEmbed(unittest.TestCase):

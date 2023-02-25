@@ -2,7 +2,7 @@ import os
 import unittest
 
 from classification_with_embeddings.__main__ import main
-from classification_with_embeddings.test.test_utils import _get_relative_path
+from test.test_utils import _get_relative_path
 
 
 class TestMain(unittest.TestCase):

@@ -2,7 +2,7 @@ import unittest
 
 from classification_with_embeddings.embedding.embed import get_word_to_embedding
 from classification_with_embeddings.evaluation.get_clf import get_clf_with_internal_clf
-from classification_with_embeddings.test.test_utils import _get_relative_path
+from test.test_utils import _get_relative_path
 
 
 class TestGetClf(unittest.TestCase):

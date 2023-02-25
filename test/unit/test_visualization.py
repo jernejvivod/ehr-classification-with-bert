@@ -4,7 +4,7 @@ import unittest
 from sklearn import metrics
 
 from classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix
-from classification_with_embeddings.test.test_utils import _get_relative_path
+from test.test_utils import _get_relative_path
 
 
 class TestVisualization(unittest.TestCase):
