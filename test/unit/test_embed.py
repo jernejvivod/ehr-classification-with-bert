@@ -7,26 +7,27 @@ from classification_with_embeddings.embedding.embed import (
     get_word2vec_embeddings,
     get_fasttext_embeddings,
     get_word_to_embedding,
-    get_aggregate_embedding
+    get_aggregate_embedding, get_starspace_embeddings
 )
 from test.test_utils import _get_relative_path
 
 
 class TestEmbed(unittest.TestCase):
-    N_EMBEDDINGS: Final = 13
+    N_WORD_EMBEDDINGS: Final = 13
 
     def test_get_starspace_embeddings(self):
-        pass
-        # get_starspace_embeddings('', 'mock_data/data.txt', '.', '')
+        get_starspace_embeddings(_get_relative_path(__file__, '../../embedding_methods/StarSpace/starspace'), '../mock_data/data.txt', _get_relative_path(__file__, '.'), '')
+        self._assert_and_delete_created_embeddings_file(_get_relative_path(__file__, 'starspace_model.tsv'), self.N_WORD_EMBEDDINGS + 2)
+        os.remove(_get_relative_path(__file__, 'starspace_model'))
 
     def test_get_word2vec_embeddings(self):
         get_word2vec_embeddings(_get_relative_path(__file__, '../mock_data/data.txt'), _get_relative_path(__file__, '.'), '')
-        self._assert_and_delete_created_embeddings_file(_get_relative_path(__file__, 'word2vec_model.tsv'))
+        self._assert_and_delete_created_embeddings_file(_get_relative_path(__file__, 'word2vec_model.tsv'), self.N_WORD_EMBEDDINGS)
 
     def test_get_fasttext_embeddings(self):
         print(os.getcwd())
         get_fasttext_embeddings(_get_relative_path(__file__, '../mock_data/data.txt'), _get_relative_path(__file__, '.'), '')
-        self._assert_and_delete_created_embeddings_file(_get_relative_path(__file__, 'fasttext_model.tsv'))
+        self._assert_and_delete_created_embeddings_file(_get_relative_path(__file__, 'fasttext_model.tsv'), self.N_WORD_EMBEDDINGS)
 
     def test_get_word_to_embedding(self):
         word_to_embedding = get_word_to_embedding(_get_relative_path(__file__, '../mock_data/mock_model.tsv'))
@@ -48,12 +49,12 @@ class TestEmbed(unittest.TestCase):
         aggregate_emb3 = get_aggregate_embedding("this something is nothing", word_to_embedding)
         self.assertEqual([1.0 / 2.0, 0.5 / 2.0, 0.8 / 2.0], list(aggregate_emb3))
 
-    def _assert_and_delete_created_embeddings_file(self, file_path: str):
+    def _assert_and_delete_created_embeddings_file(self, file_path: str, n_embeddings: int):
         # test saved file contents correct
         files = glob.glob(file_path)
         self.assertEqual(1, len(files))
         saved_file_path = files[0]
         with open(saved_file_path, 'r') as f:
-            self.assertEqual(self.N_EMBEDDINGS, len(f.readlines()))
+            self.assertEqual(n_embeddings, len(f.readlines()))
 
         os.remove(saved_file_path)
