@@ -9,28 +9,28 @@ from classification_with_embeddings.embedding.embed import (
     get_word_to_embedding,
     get_aggregate_embedding, get_starspace_embeddings
 )
-from test.test_utils import _get_relative_path
+from test.test_utils import get_relative_path
 
 
 class TestEmbed(unittest.TestCase):
     N_WORD_EMBEDDINGS: Final = 13
 
     def test_get_starspace_embeddings(self):
-        get_starspace_embeddings(_get_relative_path(__file__, '../../embedding_methods/StarSpace/starspace'), '../mock_data/data.txt', _get_relative_path(__file__, '.'), '')
-        self._assert_and_delete_created_embeddings_file(_get_relative_path(__file__, 'starspace_model.tsv'), self.N_WORD_EMBEDDINGS + 2)
-        os.remove(_get_relative_path(__file__, 'starspace_model'))
+        get_starspace_embeddings(get_relative_path(__file__, '../../embedding_methods/StarSpace/starspace'), '../mock_data/data.txt', get_relative_path(__file__, '.'), '')
+        self._assert_and_delete_created_embeddings_file(get_relative_path(__file__, 'starspace_model.tsv'), self.N_WORD_EMBEDDINGS + 2)
+        os.remove(get_relative_path(__file__, 'starspace_model'))
 
     def test_get_word2vec_embeddings(self):
-        get_word2vec_embeddings(_get_relative_path(__file__, '../mock_data/data.txt'), _get_relative_path(__file__, '.'), '')
-        self._assert_and_delete_created_embeddings_file(_get_relative_path(__file__, 'word2vec_model.tsv'), self.N_WORD_EMBEDDINGS)
+        get_word2vec_embeddings(get_relative_path(__file__, '../mock_data/data.txt'), get_relative_path(__file__, '.'), '')
+        self._assert_and_delete_created_embeddings_file(get_relative_path(__file__, 'word2vec_model.tsv'), self.N_WORD_EMBEDDINGS)
 
     def test_get_fasttext_embeddings(self):
         print(os.getcwd())
-        get_fasttext_embeddings(_get_relative_path(__file__, '../mock_data/data.txt'), _get_relative_path(__file__, '.'), '')
-        self._assert_and_delete_created_embeddings_file(_get_relative_path(__file__, 'fasttext_model.tsv'), self.N_WORD_EMBEDDINGS)
+        get_fasttext_embeddings(get_relative_path(__file__, '../mock_data/data.txt'), get_relative_path(__file__, '.'), '')
+        self._assert_and_delete_created_embeddings_file(get_relative_path(__file__, 'fasttext_model.tsv'), self.N_WORD_EMBEDDINGS)
 
     def test_get_word_to_embedding(self):
-        word_to_embedding = get_word_to_embedding(_get_relative_path(__file__, '../mock_data/mock_model.tsv'))
+        word_to_embedding = get_word_to_embedding(get_relative_path(__file__, '../mock_data/mock_model.tsv'))
         self.assertEqual(['this', 'is', 'a', 'test'], list(word_to_embedding.keys()))
         self.assertEqual([0.1, 0.2, 0.3], list(word_to_embedding['this']))
         self.assertEqual([0.9, 0.3, 0.5], list(word_to_embedding['is']))
@@ -38,7 +38,7 @@ class TestEmbed(unittest.TestCase):
         self.assertEqual([1.0, 0.9, 0.1], list(word_to_embedding['test']))
 
     def test_get_aggregate_embedding(self):
-        word_to_embedding = get_word_to_embedding(_get_relative_path(__file__, '../mock_data/mock_model.tsv'))
+        word_to_embedding = get_word_to_embedding(get_relative_path(__file__, '../mock_data/mock_model.tsv'))
 
         aggregate_emb1 = get_aggregate_embedding("something", word_to_embedding)
         self.assertEqual([0, 0, 0], list(aggregate_emb1))
