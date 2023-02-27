@@ -9,7 +9,29 @@ from classification_with_embeddings.evaluation import logger
 from classification_with_embeddings.util.arguments import process_param_spec
 
 
-def get_clf_with_internal_clf(word_to_embedding: dict, training_data_path: str, clf_internal=None, internal_clf_args: str = '') -> Callable[[str], str]:
+class Classifier:
+    def __init__(self, clf, word_to_embedding):
+        self._clf = clf
+        self._word_to_embedding = word_to_embedding
+
+    def predict(self, sample):
+        aggregate_embedding = get_aggregate_embedding(sample, self._word_to_embedding)
+        return str(self._clf.predict(aggregate_embedding.reshape(1, -1))[0])
+
+    def supports_predict_proba(self):
+        return hasattr(self._clf, 'predict_proba')
+
+    def predict_proba(self, sample):
+        if not hasattr(self._clf, 'predict_proba'):
+            raise ValueError()
+        aggregate_embedding = get_aggregate_embedding(sample, self._word_to_embedding)
+        return self._clf.predict_proba(aggregate_embedding.reshape(1, -1))[0]
+
+    def classes(self):
+        return self._clf.classes_
+
+
+def get_clf_with_internal_clf(word_to_embedding: dict, training_data_path: str, clf_internal=None, internal_clf_args: str = '') -> Classifier:
     """Get internal classifier based classifier.
 
     :param word_to_embedding: mapping of words to their embeddings
@@ -43,13 +65,10 @@ def get_clf_with_internal_clf(word_to_embedding: dict, training_data_path: str, 
     else:
         clf_internal = clf_internal(**clf_internal_params).fit(x_train, target)
 
-    def classify(sample: str):
-        aggregate_embedding = get_aggregate_embedding(sample, word_to_embedding)
-        return str(clf_internal.predict(aggregate_embedding.reshape(1, -1))[0])
-
-    return classify
+    return Classifier(clf_internal, word_to_embedding)
 
 
+# TODO should return Classifier instance. Implement support for predict_proba
 def get_clf_starspace(word_to_embedding: dict) -> Callable[[str], str]:
     """Get StarSpace-based classifier.
 

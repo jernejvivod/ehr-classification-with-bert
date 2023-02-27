@@ -4,9 +4,10 @@ from sklearn import metrics
 
 from classification_with_embeddings import LABEL_WORD_PREFIX
 from classification_with_embeddings.evaluation import logger
-from classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix
+from classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix, plot_roc
 
 
+# TODO improve typing
 def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
     """evaluate embedding-based classifier on test data.
 
@@ -16,8 +17,9 @@ def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
     :param results_path: path to directory in which to store the results
     """
 
-    # initialize lists for storing true and predicted class values
+    # initialize lists for storing true and predicted class values (probabilities and predicted classes)
     y_true = []
+    y_proba = []
     y_pred = []
 
     # go over test data and compute predicted labels
@@ -33,8 +35,12 @@ def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
             y_true.append(gt_label)
 
             # get predicted label
-            pred_label = clf(sample)
-            y_pred.append(pred_label)
+            if _will_evaluate_roc(clf):
+                pred_proba = clf.predict_proba(sample)
+                y_proba.append(pred_proba)
+                y_pred.append(clf.classes()[np.argmax(pred_proba)])
+            else:
+                y_pred.append(clf.predict(sample))
 
     logger.info('Saving evaluation results')
 
@@ -43,5 +49,11 @@ def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
     write_classification_report(cr, results_path, method)
 
     # visualize confusion matrix
-    labels_unique = np.unique(y_true)
-    plot_confusion_matrix(y_pred, y_true, labels_unique, labels_unique, results_path, method)
+    plot_confusion_matrix(y_pred, y_true, clf.classes(), clf.classes(), results_path, method)
+
+    if _will_evaluate_roc(clf):
+        plot_roc(np.vstack(y_proba), y_true, clf.classes()[1], results_path, method)
+
+
+def _will_evaluate_roc(clf):
+    return clf.supports_predict_proba and len(clf.classes()) == 2

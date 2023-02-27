@@ -11,7 +11,8 @@ class TestEvaluate(unittest.TestCase):
 
     def test_evaluate(self):
         method_name = 'word2vec'
-        cm_suffix = '.png'
+        cm_suffix = '_cm.png'
+        roc_suffix = '_roc.png'
         cr_suffix = '_cr.txt'
 
         word_to_embedding = get_word_to_embedding(get_relative_path(__file__, '../mock_data/mock_model.tsv'))
@@ -20,6 +21,8 @@ class TestEvaluate(unittest.TestCase):
         evaluate(clf, method_name, get_relative_path(__file__, '../mock_data/test.txt'), '')
 
         self.assertTrue(os.path.exists(method_name + cm_suffix))
+        self.assertTrue(os.path.exists(method_name + roc_suffix))
         self.assertTrue(os.path.exists(method_name + cr_suffix))
         os.remove(method_name + cm_suffix)
+        os.remove(method_name + roc_suffix)
         os.remove(method_name + cr_suffix)
