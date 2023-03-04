@@ -6,9 +6,9 @@ from typing import Final
 from classification_with_embeddings.embedding.embed import (
     get_word2vec_embeddings,
     get_fasttext_embeddings,
-    get_word_to_embedding,
-    get_aggregate_embedding, get_starspace_embeddings
+    get_starspace_embeddings
 )
+from classification_with_embeddings.embedding.embed_util import get_aggregate_embedding, get_word_to_embedding
 from test.test_utils import get_relative_path
 
 

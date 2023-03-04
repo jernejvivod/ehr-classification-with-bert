@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from classification_with_embeddings.embedding.embed import get_word_to_embedding
+from classification_with_embeddings.embedding.embed_util import get_word_to_embedding
 from classification_with_embeddings.evaluation.evaluate import evaluate
 from classification_with_embeddings.evaluation.get_clf import get_clf_with_internal_clf
 from test.test_utils import get_relative_path

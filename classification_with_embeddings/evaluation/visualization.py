@@ -7,7 +7,6 @@ from sklearn import metrics
 from classification_with_embeddings.evaluation import logger
 
 
-# TODO improve typing
 def write_classification_report(cr: str, dir_path: str, method: str) -> None:
     """Write classification report to file.
 
@@ -22,7 +21,7 @@ def write_classification_report(cr: str, dir_path: str, method: str) -> None:
         f.write(cr)
 
 
-def plot_confusion_matrix(predictions, y_test, labels, class_names, plot_path: str, method: str) -> None:
+def plot_confusion_matrix(predictions: list, y_test: list, labels: list, class_names: list, plot_path: str, method: str) -> None:
     """Plot confusion matrix
 
     :param predictions: predictions of the classifier
@@ -54,7 +53,7 @@ def plot_confusion_matrix(predictions, y_test, labels, class_names, plot_path: s
     plt.close()
 
 
-def plot_roc(scores, y_test, pos_label, plot_path: str, method: str):
+def plot_roc(scores: np.ndarray[1, 2], y_test: list, pos_label, plot_path: str, method: str):
     """Plot ROC curve and compute the AUC metric.
 
     :param scores: scores for classes (probabilities)

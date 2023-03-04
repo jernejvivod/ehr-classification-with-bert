@@ -38,7 +38,8 @@ class TestMain(unittest.TestCase):
     def test_evaluate(self):
         model_out_path = 'word2vec_model.tsv'
         cr_out_path = 'word2vec_cr.txt'
-        cm_out_path = 'word2vec.png'
+        cm_out_path = 'word2vec_cm.png'
+        roc_out_path = 'word2vec_roc.png'
 
         argv_embeddings = [
             __file__,
@@ -63,6 +64,8 @@ class TestMain(unittest.TestCase):
         self.assertTrue(os.path.exists(get_relative_path(__file__, model_out_path)))
         self.assertTrue(os.path.exists(get_relative_path(__file__, cr_out_path)))
         self.assertTrue(os.path.exists(get_relative_path(__file__, cm_out_path)))
+        self.assertTrue(os.path.exists(get_relative_path(__file__, roc_out_path)))
         os.remove(get_relative_path(__file__, model_out_path))
         os.remove(get_relative_path(__file__, cr_out_path))
         os.remove(get_relative_path(__file__, cm_out_path))
+        os.remove(get_relative_path(__file__, roc_out_path))

@@ -1,10 +1,8 @@
 import os
 import subprocess
 
-import numpy as np
 from gensim.models import Word2Vec, FastText
 
-from classification_with_embeddings import LABEL_WORD_PREFIX
 from classification_with_embeddings.embedding import logger
 from classification_with_embeddings.util.arguments import process_param_spec
 from classification_with_embeddings.util.errors import EmbeddingError
@@ -28,7 +26,7 @@ def get_starspace_embeddings(starspace_path: str, train_data_path: str, output_d
     if p.returncode != 0:
         raise EmbeddingError('StarSpace', p.returncode)
 
-    logger.info('Successfuly saved StarSpace embeddings')
+    logger.info('Successfuly saved StarSpace embeddings.')
     print('Entity embeddings saved to {0}'.format(model_path))
 
 
@@ -52,14 +50,15 @@ def get_word2vec_embeddings(train_data_path: str, output_dir: str, word2vec_args
         w2v_model = Word2Vec(sentences=sent_it, **params)
 
         # save embeddings in TSV format
-        logger.info('Saving computed Word2Vec embeddings')
+        logger.info('Saving computed Word2Vec embeddings.')
         output_file_name = 'word2vec_model.tsv'
-        with open(os.path.join(output_dir, output_file_name), 'w') as f:
+        out_path = os.path.join(output_dir, output_file_name)
+        with open(out_path, 'w') as f:
             for idx, emb in enumerate(w2v_model.wv.vectors):
                 key = w2v_model.wv.index_to_key[idx]
                 f.write(key + '\t' + '\t'.join(map(str, emb)) + '\n')
 
-    print('Entity embeddings saved to {0}'.format(output_dir + output_file_name))
+    print('Entity embeddings saved to {0}'.format(out_path))
 
 
 def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args: str) -> None:
@@ -84,51 +83,12 @@ def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args
         ft_model.train(corpus_iterable=sent_it, total_examples=len(sent_it), epochs=10)
 
         # save embeddings in TSV format
-        logger.info('Saving computed fastText embeddings')
+        logger.info('Saving computed fastText embeddings.')
         output_file_name = 'fasttext_model.tsv'
-        with open(os.path.join(output_dir, output_file_name), 'w') as f:
+        out_path = os.path.join(output_dir, output_file_name)
+        with open(out_path, 'w') as f:
             for idx, emb in enumerate(ft_model.wv.vectors):
                 key = ft_model.wv.index_to_key[idx]
                 f.write(key + '\t' + '\t'.join(map(str, emb)) + '\n')
 
-    print('Entity embeddings saved to {0}'.format(output_dir + output_file_name))
-
-
-# TODO implement additional methodologies
-def get_aggregate_embedding(features: str, word_to_embedding: dict, method='average') -> np.ndarray:  # TODO method should be enum
-    """get embedding for a new set of features (new document).
-
-    :param features: features in fastText format
-    :param word_to_embedding: mapping of words to their embeddings
-    :param method: word embedding aggregation method to use
-    :return: aggregate vector composed of individual entity embeddings
-    """
-
-    # construct aggregate embedding
-    emb_len = len(next(iter(word_to_embedding.values())))
-    words = [w for w in features.split() if LABEL_WORD_PREFIX not in w]
-    aggregate_emb = np.zeros(emb_len, dtype=float)
-    count = 0
-    for word in words:
-        if word in word_to_embedding:
-            aggregate_emb += word_to_embedding[word]
-            count += 1
-    if count > 0:
-        aggregate_emb /= count
-    return aggregate_emb
-
-
-def get_word_to_embedding(path_to_embeddings: str) -> dict:
-    """get dictionary mapping words to their embeddings.
-
-    :param path_to_embeddings: path embeddings
-    :return: dictionary mapping words to their embeddings
-    """
-
-    logger.info('Obtaining mapping from words to their embeddings')
-    with open(path_to_embeddings, 'r') as f:
-        word_to_embedding = dict()
-        for emb in f:
-            emb_l = emb.strip().split('\t')
-            word_to_embedding[emb_l[0]] = np.asarray(emb_l[1:], dtype=float)
-        return word_to_embedding
+    print('Entity embeddings saved to {0}'.format(out_path))

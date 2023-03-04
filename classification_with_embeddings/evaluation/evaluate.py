@@ -4,14 +4,14 @@ from sklearn import metrics
 
 from classification_with_embeddings import LABEL_WORD_PREFIX
 from classification_with_embeddings.evaluation import logger
+from classification_with_embeddings.evaluation.get_clf import AClassifier
 from classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix, plot_roc
 
 
-# TODO improve typing
-def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
+def evaluate(clf: AClassifier, method: str, test_data_path: str, results_path: str) -> None:
     """evaluate embedding-based classifier on test data.
 
-    :param clf: classifier function that outputs the predicted label for a sample (fastText format document)
+    :param clf: `AClassifier` instance that outputs the predicted probabilities or label for a sample (fastText format document)
     :param method: embedding method used
     :param test_data_path: path to test data in fastText format
     :param results_path: path to directory in which to store the results
@@ -23,7 +23,7 @@ def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
     y_pred = []
 
     # go over test data and compute predicted labels
-    logger.info('Computed predicted labels')
+    logger.info('Computing predicted labels.')
     with open(test_data_path, 'r') as f:
         for idx, sample in tqdm.tqdm(enumerate(f), desc='Computing predicted labels', unit='samples'):
 
@@ -42,7 +42,7 @@ def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
             else:
                 y_pred.append(clf.predict(sample))
 
-    logger.info('Saving evaluation results')
+    logger.info('Saving evaluation results.')
 
     # write classification report
     cr = metrics.classification_report(y_true, y_pred)
@@ -55,5 +55,5 @@ def evaluate(clf, method: str, test_data_path: str, results_path: str) -> None:
         plot_roc(np.vstack(y_proba), y_true, clf.classes()[1], results_path, method)
 
 
-def _will_evaluate_roc(clf):
+def _will_evaluate_roc(clf) -> bool:
     return clf.supports_predict_proba and len(clf.classes()) == 2

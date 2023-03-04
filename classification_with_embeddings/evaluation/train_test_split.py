@@ -14,7 +14,7 @@ def get_train_test_split(data_path: str, output_dir: str, train_size: float = 0.
     :param train_size: proportion of the dataset to include in the training split
     :param stratify: split the data in a stratified fashion
     """
-    logger.info('Performing train-test split with with train_size={0}'.format(train_size))
+    logger.info('Performing train-test split with with train_size={0}.'.format(train_size))
 
     labels = _read_labels(data_path)
     idxs_train, idxs_test = model_selection.train_test_split(range(len(labels)), train_size=train_size, stratify=labels if stratify else None, shuffle=True)
@@ -29,7 +29,7 @@ def _read_labels(data_path: str):
     return labels
 
 
-def _write_train_and_test_data(data_path: str, output_dir: str, idxs_train, idxs_test):
+def _write_train_and_test_data(data_path: str, output_dir: str, idxs_train, idxs_test) -> None:
     data_file_path = pathlib.Path(data_path)
     data_train_path = pathlib.Path(output_dir).joinpath(data_file_path.stem + '_train' + data_file_path.suffix)
     data_test_path = pathlib.Path(output_dir).joinpath(data_file_path.stem + '_test' + data_file_path.suffix)
