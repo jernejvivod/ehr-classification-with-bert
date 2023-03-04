@@ -19,6 +19,7 @@ class EntityEmbeddingMethod(Enum):
     STARSPACE = 'starspace'
     FASTTEXT = 'fasttext'
     PRE_TRAINED_FROM_FILE = 'pre-trained-from-file'
+    DOC2VEC = 'doc2vec'
 
 
 class InternalClassifier(Enum):

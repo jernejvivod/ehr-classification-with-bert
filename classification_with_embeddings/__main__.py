@@ -1,6 +1,7 @@
 import argparse
 import sys
 
+from gensim.models import Doc2Vec
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
@@ -10,7 +11,7 @@ from classification_with_embeddings import logger
 from classification_with_embeddings.embedding import embed
 from classification_with_embeddings.embedding.embed_util import get_word_to_embedding
 from classification_with_embeddings.evaluation.evaluate import evaluate
-from classification_with_embeddings.evaluation.get_clf import get_clf_with_internal_clf, get_clf_starspace
+from classification_with_embeddings.evaluation.get_clf import get_clf_with_internal_clf, get_clf_starspace, get_clf_with_internal_clf_doc2vec
 from classification_with_embeddings.evaluation.train_test_split import get_train_test_split
 from classification_with_embeddings.util.argparse import file_path, dir_path, proportion_float
 
@@ -36,6 +37,8 @@ def main(argv=None):
                                               help='Arguments passed to Word2Vec implementation (key-value pairs such as val=1 enclosed in quotes with no commas separated by spaces)')
     get_entity_embeddings_parser.add_argument('--fasttext-args', type=str, default='',
                                               help='Arguments passed to fastText implementation (key-value pairs such as val=1 enclosed in quotes with no commas separated by spaces)')
+    get_entity_embeddings_parser.add_argument('--doc2vec-args', type=str, default='',
+                                              help='Arguments passed to Doc2Vec implementation (key-value pairs such as val=1 enclosed in quotes with no commas separated by spaces)')
 
     # DATA TRAIN-TEST SPLIT
     train_test_split_parser = subparsers.add_parser(Tasks.TRAIN_TEST_SPLIT.value)
@@ -50,7 +53,8 @@ def main(argv=None):
                                  choices=[v.value for v in EntityEmbeddingMethod], help='Entity embedding method to evaluate')
     evaluate_parser.add_argument('--train-data-path', type=file_path, required=True, help='Path to file containing the training data in fastText format (for training internal classifiers)')
     evaluate_parser.add_argument('--test-data-path', type=file_path, required=True, help='Path to file containing the test data in fastText format')
-    evaluate_parser.add_argument('--embeddings-path', type=file_path, required=True, help='Path to stored feature embeddings')
+    evaluate_parser.add_argument('--embeddings-path', type=file_path, help='Path to stored feature embeddings')
+    evaluate_parser.add_argument('--doc2vec-model-path', type=file_path, help='Path to stored Doc2Vec model')
     evaluate_parser.add_argument('--binary', action='store_true', help='Embeddings are stored in binary format')
     evaluate_parser.add_argument('--results-path', type=dir_path, default='.', help='Path to directory in which to save the results')
     evaluate_parser.add_argument('--internal-clf', type=str, default=InternalClassifier.LOGISTIC_REGRESSION.value, help='Internal classifier to use (if applicable)')
@@ -90,6 +94,10 @@ def task_get_entity_embeddings(parsed_args: dict):
         # FASTTEXT
         logger.info('Using fastText method.')
         embed.get_fasttext_embeddings(parsed_args['train_data_path'], parsed_args['output_dir'], parsed_args['fasttext_args'])
+    elif parsed_args['method'] == EntityEmbeddingMethod.DOC2VEC.value:
+        # DOC2VEC
+        logger.info('Using Doc2Vec method.')
+        embed.get_doc2vec_embeddings(parsed_args['train_data_path'], parsed_args['output_dir'], parsed_args['doc2vec_args'])
     else:
         raise NotImplementedError('Method {0} not implemented'.format(parsed_args['method']))
 
@@ -99,31 +107,40 @@ def task_train_test_split(parsed_args: dict):
 
 
 def task_evaluate(parsed_args: dict):
-    logger.info('Performing evaluation using embeddings in {0}'.format(parsed_args['embeddings_path']))
-
-    # get mapping of words to their embeddings
-    word_to_embedding = get_word_to_embedding(parsed_args['embeddings_path'], binary=parsed_args['binary'])
+    logger.info('Performing evaluation of method \'{0}\''.format(parsed_args['method']))
 
     if parsed_args['method'] == EntityEmbeddingMethod.STARSPACE.value:
         # STARSPACE
+        word_to_embedding = get_word_to_embedding(parsed_args['embeddings_path'], binary=parsed_args['binary'])
         clf = get_clf_starspace(word_to_embedding)
     elif parsed_args['method'] == EntityEmbeddingMethod.WORD2VEC.value or \
             parsed_args['method'] == EntityEmbeddingMethod.FASTTEXT.value or \
             parsed_args['method'] == EntityEmbeddingMethod.PRE_TRAINED_FROM_FILE.value:
-
-        # set internal classifier
-        if parsed_args['internal_clf'] == InternalClassifier.LOGISTIC_REGRESSION.value:
-            clf_internal = LogisticRegression
-        elif parsed_args['internal_clf'] == InternalClassifier.RANDOM_FOREST.value:
-            clf_internal = RandomForestClassifier
-        elif parsed_args['internal_clf'] == InternalClassifier.SVC.value:
-            clf_internal = SVC
-        else:
-            raise NotImplementedError('Classifier {0} not implemented.'.format(parsed_args['internal_clf']))
+        # STORED EMBEDDINGS
+        word_to_embedding = get_word_to_embedding(parsed_args['embeddings_path'], binary=parsed_args['binary'])
+        clf_internal = _get_clf_internal(parsed_args['internal_clf'])
         clf = get_clf_with_internal_clf(word_to_embedding, parsed_args['train_data_path'], clf_internal, parsed_args['internal_clf_args'])
+    elif parsed_args['method'] == EntityEmbeddingMethod.DOC2VEC.value:
+        clf_internal = _get_clf_internal(parsed_args['internal_clf'])
+        doc2vec_model = Doc2Vec.load(parsed_args['doc2vec_model_path'])
+        clf = get_clf_with_internal_clf_doc2vec(doc2vec_model, parsed_args['train_data_path'], clf_internal, parsed_args['internal_clf_args'])
     else:
         raise NotImplementedError('Method {0} not implemented.'.format(parsed_args['method']))
+
+    # evaluate classfier
     evaluate(clf, parsed_args['method'], parsed_args['test_data_path'], parsed_args['results_path'])
+
+
+def _get_clf_internal(internal_clf_kind: str):
+    # set internal classifier
+    if internal_clf_kind == InternalClassifier.LOGISTIC_REGRESSION.value:
+        return LogisticRegression
+    elif internal_clf_kind == InternalClassifier.RANDOM_FOREST.value:
+        return RandomForestClassifier
+    elif internal_clf_kind == InternalClassifier.SVC.value:
+        return SVC
+    else:
+        raise NotImplementedError('Classifier {0} not implemented.'.format(internal_clf_kind))
 
 
 if __name__ == '__main__':

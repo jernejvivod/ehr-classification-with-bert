@@ -2,6 +2,7 @@ import os
 import subprocess
 
 from gensim.models import Word2Vec, FastText
+from gensim.models.doc2vec import TaggedDocument, Doc2Vec
 
 from classification_with_embeddings.embedding import logger
 from classification_with_embeddings.util.arguments import process_param_spec
@@ -92,3 +93,28 @@ def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args
                 f.write(key + '\t' + '\t'.join(map(str, emb)) + '\n')
 
     print('Entity embeddings saved to {0}'.format(out_path))
+
+
+def get_doc2vec_embeddings(train_data_path: str, output_dir: str, doc2vec_args: str) -> None:
+    """Get entity embeddings using Doc2Vec.
+
+    :param train_data_path: path to training data in fastText format
+    :param output_dir: path to directory in which to store the embeddings
+    :param doc2vec_args: arguments passed to fastText implementation
+    """
+    # if custom arguments specified, process
+    if len(doc2vec_args) > 0:
+        params = process_param_spec(doc2vec_args)
+    else:
+        params = {'vector_size': 100, 'window': 2, 'min_count': 1, 'epochs': 10}
+
+    # compute and save entity embeddings
+    with SentenceIteratorFastTextFormat(train_data_path) as sent_it:
+        tagged_data = [TaggedDocument(words=s, tags=[str(i)]) for i, s in enumerate(sent_it)]
+        model = Doc2Vec(tagged_data, **params)
+
+        # save model
+        logger.info('Saving computed Doc2Vec model.')
+        output_file_name = 'doc2vec_model.bin'
+        out_path = os.path.join(output_dir, output_file_name)
+        model.save(out_path)

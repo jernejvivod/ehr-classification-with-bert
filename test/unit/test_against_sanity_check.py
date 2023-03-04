@@ -2,10 +2,12 @@ import os.path
 import unittest
 from typing import Final
 
-from classification_with_embeddings.embedding.embed import get_word2vec_embeddings, get_fasttext_embeddings, get_starspace_embeddings
+from gensim.models import Doc2Vec
+
+from classification_with_embeddings.embedding.embed import get_word2vec_embeddings, get_fasttext_embeddings, get_starspace_embeddings, get_doc2vec_embeddings
 from classification_with_embeddings.embedding.embed_util import get_word_to_embedding
 from classification_with_embeddings.evaluation.evaluate import evaluate
-from classification_with_embeddings.evaluation.get_clf import get_clf_starspace, get_clf_with_internal_clf
+from classification_with_embeddings.evaluation.get_clf import get_clf_starspace, get_clf_with_internal_clf, get_clf_with_internal_clf_doc2vec
 from test.test_utils import get_relative_path
 
 
@@ -19,6 +21,7 @@ class TestEmbed(unittest.TestCase):
     def test_classification_sanity_check(self):
         self._run_test_classification_sanity_check(method='word2vec')
         self._run_test_classification_sanity_check(method='fasttext')
+        self._run_test_classification_sanity_check(method='doc2vec')
         self._run_test_classification_sanity_check(method='starspace')
         self._run_test_classification_sanity_check(method='pre-trained-from-file')
 
@@ -31,6 +34,10 @@ class TestEmbed(unittest.TestCase):
             get_fasttext_embeddings(self.TRAINING_SET_PATH, self.OUT_PATH, args)
             word_to_embedding = get_word_to_embedding(get_relative_path(__file__, os.path.join(self.OUT_PATH, '{}_model.tsv'.format(method))))
             clf = get_clf_with_internal_clf(word_to_embedding, self.TRAINING_SET_PATH, clf_internal=clf_internal, internal_clf_args=internal_clf_args)
+        elif method == 'doc2vec':
+            get_doc2vec_embeddings(self.TRAINING_SET_PATH, self.OUT_PATH, args)
+            doc2vec_model = Doc2Vec.load(get_relative_path(__file__, os.path.join(self.OUT_PATH, '../mock_data/doc2vec_model.bin')))
+            clf = get_clf_with_internal_clf_doc2vec(doc2vec_model, self.TRAINING_SET_PATH, clf_internal=clf_internal, internal_clf_args=internal_clf_args)
         elif method == 'starspace':
             get_starspace_embeddings(self.STARSPACE_PATH, self.TRAINING_SET_PATH, self.OUT_PATH, args)
             word_to_embedding = get_word_to_embedding(get_relative_path(__file__, os.path.join(self.OUT_PATH, '{}_model.tsv'.format(method))))

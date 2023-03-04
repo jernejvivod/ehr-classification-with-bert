@@ -1,3 +1,5 @@
+from typing import Dict
+
 import gensim
 import numpy as np
 
@@ -5,7 +7,7 @@ from classification_with_embeddings import LABEL_WORD_PREFIX
 from classification_with_embeddings.embedding import logger
 
 
-def get_aggregate_embedding(features: str, word_to_embedding: dict, method='average') -> np.ndarray:
+def get_aggregate_embedding(features: str, word_to_embedding: Dict[str, np.ndarray[1, ...]], method='average') -> np.ndarray[1, ...]:
     """get embedding for a new set of features (new document).
 
     :param features: features in fastText format
@@ -21,7 +23,7 @@ def get_aggregate_embedding(features: str, word_to_embedding: dict, method='aver
         raise ValueError('method {} not supported'.format(method))
 
 
-def _get_aggregate_embedding_average(words: list[str], word_to_embedding: dict):
+def _get_aggregate_embedding_average(words: list[str], word_to_embedding: dict) -> np.ndarray[1, ...]:
     """Get aggregate embedding by averaging constituent word embeddings.
 
     :param words: list of constituent words
@@ -40,7 +42,7 @@ def _get_aggregate_embedding_average(words: list[str], word_to_embedding: dict):
     return aggregate_emb
 
 
-def get_word_to_embedding(path_to_embeddings: str, binary: bool = False) -> dict:
+def get_word_to_embedding(path_to_embeddings: str, binary: bool = False) -> Dict[str, np.ndarray[1, ...]]:
     """get dictionary mapping words to their embeddings.
 
     :param path_to_embeddings: path embeddings

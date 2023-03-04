@@ -6,7 +6,7 @@ from typing import Final
 from classification_with_embeddings.embedding.embed import (
     get_word2vec_embeddings,
     get_fasttext_embeddings,
-    get_starspace_embeddings
+    get_starspace_embeddings, get_doc2vec_embeddings
 )
 from classification_with_embeddings.embedding.embed_util import get_aggregate_embedding, get_word_to_embedding
 from test.test_utils import get_relative_path
@@ -25,9 +25,15 @@ class TestEmbed(unittest.TestCase):
         self._assert_and_delete_created_embeddings_file(get_relative_path(__file__, 'word2vec_model.tsv'), self.N_WORD_EMBEDDINGS)
 
     def test_get_fasttext_embeddings(self):
-        print(os.getcwd())
         get_fasttext_embeddings(get_relative_path(__file__, '../mock_data/data.txt'), get_relative_path(__file__, '.'), '')
         self._assert_and_delete_created_embeddings_file(get_relative_path(__file__, 'fasttext_model.tsv'), self.N_WORD_EMBEDDINGS)
+
+    def test_get_doc2vec_embeddings(self):
+        get_doc2vec_embeddings(get_relative_path(__file__, '../mock_data/data.txt'), get_relative_path(__file__, '.'), '')
+
+        file_path = '../mock_data/doc2vec_model.bin'
+        self.assertTrue(os.path.exists(file_path))
+        os.remove(file_path)
 
     def test_get_word_to_embedding(self):
         word_to_embedding = get_word_to_embedding(get_relative_path(__file__, '../mock_data/mock_model.tsv'))
