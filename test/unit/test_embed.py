@@ -8,7 +8,7 @@ from classification_with_embeddings.embedding.embed import (
     get_fasttext_embeddings,
     get_starspace_embeddings, get_doc2vec_embeddings
 )
-from classification_with_embeddings.embedding.embed_util import get_aggregate_embedding, get_word_to_embedding
+from classification_with_embeddings.embedding.embed_util import get_aggregate_embedding, get_word_to_embedding, get_aggregate_embeddings
 from test.test_utils import get_relative_path
 
 
@@ -31,7 +31,7 @@ class TestEmbed(unittest.TestCase):
     def test_get_doc2vec_embeddings(self):
         get_doc2vec_embeddings(get_relative_path(__file__, '../mock_data/data.txt'), get_relative_path(__file__, '.'), '')
 
-        file_path = '../mock_data/doc2vec_model.bin'
+        file_path = get_relative_path(__file__, 'doc2vec_model.bin')
         self.assertTrue(os.path.exists(file_path))
         os.remove(file_path)
 
@@ -46,14 +46,20 @@ class TestEmbed(unittest.TestCase):
     def test_get_aggregate_embedding(self):
         word_to_embedding = get_word_to_embedding(get_relative_path(__file__, '../mock_data/mock_model.tsv'))
 
-        aggregate_emb1 = get_aggregate_embedding("something", word_to_embedding)
+        aggregate_emb1 = get_aggregate_embedding(['something'], word_to_embedding)
         self.assertEqual([0, 0, 0], list(aggregate_emb1))
 
-        aggregate_emb2 = get_aggregate_embedding("this something", word_to_embedding)
+        aggregate_emb2 = get_aggregate_embedding(['this', 'something'], word_to_embedding)
         self.assertEqual([0.1, 0.2, 0.3], list(aggregate_emb2))
 
-        aggregate_emb3 = get_aggregate_embedding("this something is nothing", word_to_embedding)
+        aggregate_emb3 = get_aggregate_embedding(['this', 'something', 'is', 'nothing'], word_to_embedding)
         self.assertEqual([1.0 / 2.0, 0.5 / 2.0, 0.8 / 2.0], list(aggregate_emb3))
+
+    def test_get_aggregate_embeddings(self):
+        word_to_embedding = get_word_to_embedding(get_relative_path(__file__, '../mock_data/mock_model.tsv'))
+
+        aggregate_embs = get_aggregate_embeddings([['something'], ['this', 'something'], ['this', 'something', 'is', 'nothing']], word_to_embedding)
+        self.assertEqual([[0, 0, 0], [0.1, 0.2, 0.3], [1.0 / 2.0, 0.5 / 2.0, 0.8 / 2.0]], aggregate_embs.tolist())
 
     def _assert_and_delete_created_embeddings_file(self, file_path: str, n_embeddings: int):
         # test saved file contents correct

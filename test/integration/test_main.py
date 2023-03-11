@@ -50,17 +50,34 @@ class TestMain(unittest.TestCase):
         ]
         main(argv_embeddings)
 
+        # using stored embeddings
         argv_evaluate = [
             __file__,
             'evaluate',
             '--method', 'word2vec',
-            '--train-data-path', get_relative_path(__file__, '../mock_data/train.txt'),
-            '--test-data-path', get_relative_path(__file__, '../mock_data/test.txt'),
+            '--train-data-path', get_relative_path(__file__, '../mock_data/sanity_check_dataset_train.txt'),
+            '--test-data-path', get_relative_path(__file__, '../mock_data/sanity_check_dataset.txt'),
             '--embeddings-path', get_relative_path(__file__, 'word2vec_model.tsv'),
             '--results-path', get_relative_path(__file__, '.'),
         ]
         main(argv_evaluate)
+        self._assert_and_remove_output(model_out_path, cr_out_path, cm_out_path, roc_out_path)
 
+        # using grid-search
+        argv_evaluate_gs = [
+            __file__,
+            'evaluate',
+            '--method', 'fasttext',
+            '--param-grid-path', get_relative_path(__file__, '../mock_data/param_grid.json'),
+            '--cv', '3',
+            '--train-data-path', get_relative_path(__file__, '../mock_data/sanity_check_dataset_train.txt'),
+            '--test-data-path', get_relative_path(__file__, '../mock_data/sanity_check_dataset_test.txt'),
+            '--results-path', get_relative_path(__file__, '.'),
+        ]
+        main(argv_evaluate_gs)
+        self._assert_and_remove_output(model_out_path, cr_out_path, cm_out_path, roc_out_path)
+
+    def _assert_and_remove_output(self, model_out_path: str, cr_out_path: str, cm_out_path: str, roc_out_path: str):
         self.assertTrue(os.path.exists(get_relative_path(__file__, model_out_path)))
         self.assertTrue(os.path.exists(get_relative_path(__file__, cr_out_path)))
         self.assertTrue(os.path.exists(get_relative_path(__file__, cm_out_path)))

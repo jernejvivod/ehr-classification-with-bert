@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 import gensim
 import numpy as np
@@ -7,20 +7,32 @@ from classification_with_embeddings import LABEL_WORD_PREFIX
 from classification_with_embeddings.embedding import logger
 
 
-def get_aggregate_embedding(features: str, word_to_embedding: Dict[str, np.ndarray[1, ...]], method='average') -> np.ndarray[1, ...]:
+def get_aggregate_embedding(sentence_words: List[str], word_to_embedding: Dict[str, np.ndarray[1, ...]], method='average') -> np.ndarray[1, ...]:
     """get embedding for a new set of features (new document).
 
-    :param features: features in fastText format
+    :param sentence_words: features in fastText format
     :param word_to_embedding: mapping of words to their embeddings
     :param method: word embedding aggregation method to use
     :return: aggregate vector composed of individual entity embeddings
     """
 
-    words = [w for w in features.split() if LABEL_WORD_PREFIX not in w]
+    words = [w for w in sentence_words if LABEL_WORD_PREFIX not in w]
     if method == 'average':
         return _get_aggregate_embedding_average(words, word_to_embedding)
     else:
         raise ValueError('method {} not supported'.format(method))
+
+
+def get_aggregate_embeddings(sentences: List[List[str]], word_to_embedding: Dict[str, np.ndarray[1, ...]], method='average') -> np.ndarray[..., ...]:
+    """get embedding for a new set of features (multiple documents).
+
+    :param sentences: features in fastText format for documents
+    :param word_to_embedding: mapping of words to their embeddings
+    :param method: word embedding aggregation method to use
+    :return: aggregate vectors composed of individual entity embeddings
+    """
+
+    return np.vstack([get_aggregate_embedding(s, word_to_embedding, method) for s in sentences])
 
 
 def _get_aggregate_embedding_average(words: list[str], word_to_embedding: dict) -> np.ndarray[1, ...]:

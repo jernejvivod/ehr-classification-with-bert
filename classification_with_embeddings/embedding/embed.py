@@ -28,7 +28,7 @@ def get_starspace_embeddings(starspace_path: str, train_data_path: str, output_d
         raise EmbeddingError('StarSpace', p.returncode)
 
     logger.info('Successfuly saved StarSpace embeddings.')
-    print('Entity embeddings saved to {0}'.format(model_path))
+    print('Entity embeddings saved to {}'.format(model_path))
 
 
 def get_word2vec_embeddings(train_data_path: str, output_dir: str, word2vec_args: str) -> None:
