@@ -8,7 +8,7 @@ from classification_with_embeddings.embedding import logger
 
 
 def get_aggregate_embedding(sentence_words: List[str], word_to_embedding: Dict[str, np.ndarray[1, ...]], method='average') -> np.ndarray[1, ...]:
-    """get embedding for a new set of features (new document).
+    """Get embedding for a new set of features (new document).
 
     :param sentence_words: features in fastText format
     :param word_to_embedding: mapping of words to their embeddings
@@ -24,7 +24,7 @@ def get_aggregate_embedding(sentence_words: List[str], word_to_embedding: Dict[s
 
 
 def get_aggregate_embeddings(sentences: List[List[str]], word_to_embedding: Dict[str, np.ndarray[1, ...]], method='average') -> np.ndarray[..., ...]:
-    """get embedding for a new set of features (multiple documents).
+    """Get embedding for a new set of features (multiple documents).
 
     :param sentences: features in fastText format for documents
     :param word_to_embedding: mapping of words to their embeddings
@@ -55,11 +55,11 @@ def _get_aggregate_embedding_average(words: list[str], word_to_embedding: dict) 
 
 
 def get_word_to_embedding(path_to_embeddings: str, binary: bool = False) -> Dict[str, np.ndarray[1, ...]]:
-    """get dictionary mapping words to their embeddings.
+    """Get dictionary mapping words to their embeddings.
 
     :param path_to_embeddings: path embeddings
     :param binary: are the embeddings stored in binary format or not
-    :return: dictionary mapping words to their embeddings
+    :return: dict mapping words to their embeddings
     """
 
     logger.info('Obtaining mapping from words to their embeddings.')

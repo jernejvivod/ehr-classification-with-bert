@@ -6,13 +6,5 @@
   "classification__n_estimators": [
     50,
     100
-  ],
-  "classification__max_depth": [
-    5,
-    10
-  ],
-  "classification__min_samples_split": [
-    5,
-    10
   ]
 }

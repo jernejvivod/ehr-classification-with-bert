@@ -52,7 +52,7 @@ class TestEmbed(unittest.TestCase):
             clf = get_clf_with_internal_clf(word_to_embedding, self.TRAINING_SET_PATH, clf_internal=clf_internal, internal_clf_args=internal_clf_args)
         elif embedding_method == 'doc2vec':
             get_doc2vec_embeddings(self.TRAINING_SET_PATH, self.OUT_PATH, args)
-            doc2vec_model = Doc2Vec.load(get_relative_path(__file__, os.path.join(self.OUT_PATH, '../mock_data/doc2vec_model.bin')))
+            doc2vec_model = Doc2Vec.load(get_relative_path(__file__, os.path.join(self.OUT_PATH, 'doc2vec_model.bin')))
             clf = get_clf_with_internal_clf_doc2vec(doc2vec_model, self.TRAINING_SET_PATH, clf_internal=clf_internal, internal_clf_args=internal_clf_args)
         elif embedding_method == 'starspace':
             get_starspace_embeddings(self.STARSPACE_PATH, self.TRAINING_SET_PATH, self.OUT_PATH, args)
@@ -66,7 +66,7 @@ class TestEmbed(unittest.TestCase):
 
         evaluate(clf, embedding_method, get_relative_path(__file__, self.TEST_SET_PATH), self.OUT_PATH)
 
-    def _run_test_classification_gs_sanity_check(self, embedding_method: str, param_grid: dict, clf_internal=RandomForestClassifier()):
+    def _run_test_classification_gs_sanity_check(self, embedding_method: str, param_grid: dict, clf_internal=RandomForestClassifier):
         clf = get_clf_with_internal_clf_gs(self.TRAINING_SET_PATH_GS, self.VALIDATION_SET_PATH_GS, clf_internal=clf_internal, param_grid=param_grid, embedding_method=embedding_method)
         evaluate(clf, embedding_method, get_relative_path(__file__, self.TEST_SET_PATH), self.OUT_PATH)
 

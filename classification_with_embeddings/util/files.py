@@ -2,7 +2,7 @@ import os
 
 
 def delete_file(path) -> None:
-    """delete file if exists
+    """Delete file if exists
 
     :param path: path to file
     """

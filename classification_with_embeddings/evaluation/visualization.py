@@ -22,7 +22,7 @@ def write_classification_report(cr: str, dir_path: str, method: str) -> None:
 
 
 def plot_confusion_matrix(predictions: list | np.ndarray[1, ...], y_test: list, labels: list, class_names: list, plot_path: str, method: str) -> None:
-    """Plot confusion matrix
+    """Plot confusion matrix.
 
     :param predictions: predictions of the classifier
     :param y_test: ground truth values
@@ -66,13 +66,13 @@ def plot_roc(scores: np.ndarray[..., 2], y_test: list, pos_label, plot_path: str
     output_file_path = os.path.abspath(os.path.join(plot_path, method + '_roc' + '.png'))
     logger.info('Saving ROC plot to {0}'.format(output_file_path))
 
-    # Get false positive rates, true positive rates and thresholds.
+    # get false positive rates, true positive rates and thresholds
     fpr, tpr, thresholds = metrics.roc_curve(y_test, scores[:, 1], pos_label=pos_label)
 
-    # Compute AUC.
+    # compute AUC
     roc_auc = metrics.roc_auc_score(y_test, scores[:, 1])
 
-    # Plot ROC curve.
+    # plot ROC curve
     plt.figure()
     lw = 2
     plt.plot(fpr, tpr, color='darkorange',
