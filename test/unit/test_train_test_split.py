@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from classification_with_embeddings.evaluation.train_test_split import get_train_test_split
+from classification_with_embeddings.train_test_split.train_test_split import get_train_test_split
 from test.test_utils import get_relative_path
 
 

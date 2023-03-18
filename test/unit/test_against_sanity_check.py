@@ -9,7 +9,7 @@ from classification_with_embeddings.embedding.embed import get_word2vec_embeddin
 from classification_with_embeddings.embedding.embed_util import get_word_to_embedding
 from classification_with_embeddings.evaluation.evaluate import evaluate
 from classification_with_embeddings.evaluation.get_clf import get_clf_starspace, get_clf_with_internal_clf, get_clf_with_internal_clf_doc2vec, get_clf_with_internal_clf_gs
-from classification_with_embeddings.evaluation.train_test_split import get_train_test_split
+from classification_with_embeddings.train_test_split.train_test_split import get_train_test_split
 from test.test_utils import get_relative_path
 
 

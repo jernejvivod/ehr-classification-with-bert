@@ -1,4 +1,4 @@
-from typing import Callable, List, Tuple, Iterable
+from typing import Callable, List, Iterable
 
 import numpy as np
 from gensim.models import Doc2Vec
@@ -14,9 +14,9 @@ from classification_with_embeddings.evaluation import logger
 from classification_with_embeddings.evaluation.clf.a_classifier import AClassifier
 from classification_with_embeddings.evaluation.clf.classifier import Classifier
 from classification_with_embeddings.evaluation.clf.doc2vec_classifier import Doc2VecClassifier
-from classification_with_embeddings.evaluation.embedders.a_doc_embedder import ADocEmbedder
 from classification_with_embeddings.evaluation.clf.pipeline_classifier import PipelineClassifier
 from classification_with_embeddings.evaluation.clf.starspace_classifier import StarSpaceClassifier
+from classification_with_embeddings.evaluation.embedders.a_doc_embedder import ADocEmbedder
 from classification_with_embeddings.evaluation.util import _fasttext_data_to_x_y, _fasttext_data_to_x_y_multiple
 from classification_with_embeddings.util.arguments import process_param_spec
 
@@ -58,10 +58,12 @@ def get_clf_with_internal_clf_gs(train_data_path: str | Iterable[str], validatio
     # run grid search
     grid_search = GridSearchCV(estimator=clf_pipeline, param_grid=param_grid if param_grid is not None else dict(), cv=cv, scoring='accuracy', n_jobs=-1)
     validation_sentences, validation_labels = _fasttext_data_to_x_y(validation_data_path) if isinstance(validation_data_path, str) else _fasttext_data_to_x_y_multiple(validation_data_path)
+    logger.info('Performing grid-search.')
     grid_search.fit(validation_sentences, validation_labels)
 
     # train best estimator
     train_sentences, train_labels = _fasttext_data_to_x_y(train_data_path) if isinstance(train_data_path, str) else _fasttext_data_to_x_y_multiple(train_data_path)
+    logger.info('Training best model.')
     clf = grid_search.best_estimator_.fit(train_sentences, train_labels)
 
     # return PipelineClassifier instance initialized with best estimator

@@ -13,7 +13,7 @@ from classification_with_embeddings.embedding.embed_util import get_word_to_embe
 from classification_with_embeddings.evaluation.clf.a_classifier import AClassifier
 from classification_with_embeddings.evaluation.evaluate import evaluate
 from classification_with_embeddings.evaluation.get_clf import get_clf_with_internal_clf, get_clf_starspace, get_clf_with_internal_clf_doc2vec, get_clf_with_internal_clf_gs
-from classification_with_embeddings.evaluation.train_test_split import get_train_test_split
+from classification_with_embeddings.train_test_split.train_test_split import get_train_test_split
 from classification_with_embeddings.util.argparse import file_path, dir_path, proportion_float
 from classification_with_embeddings.util.arguments import get_train_and_val_paths_for_multiple_train_files, parse_param_grid
 
@@ -101,21 +101,23 @@ def _task_get_entity_embeddings(parsed_args: dict):
         logger.info('Using StarSpace method.')
         if parsed_args['starspace_path'] is None:
             raise ValueError('path to StarSpace executable must be defined when using StarSpace')
-        get_starspace_embeddings(parsed_args['starspace_path'], parsed_args['train_data_path'], parsed_args['output_dir'], parsed_args['starspace_args'])
+        res_path = get_starspace_embeddings(parsed_args['starspace_path'], parsed_args['train_data_path'], parsed_args['output_dir'], parsed_args['starspace_args'])
     elif parsed_args['method'] == EntityEmbeddingMethod.WORD2VEC.value:
         # WORD2VEC
         logger.info('Using Word2Vec method.')
-        get_word2vec_embeddings(parsed_args['train_data_path'], parsed_args['output_dir'], parsed_args['word2vec_args'])
+        res_path = get_word2vec_embeddings(parsed_args['train_data_path'], parsed_args['output_dir'], parsed_args['word2vec_args'])
     elif parsed_args['method'] == EntityEmbeddingMethod.FASTTEXT.value:
         # FASTTEXT
         logger.info('Using fastText method.')
-        get_fasttext_embeddings(parsed_args['train_data_path'], parsed_args['output_dir'], parsed_args['fasttext_args'])
+        res_path = get_fasttext_embeddings(parsed_args['train_data_path'], parsed_args['output_dir'], parsed_args['fasttext_args'])
     elif parsed_args['method'] == EntityEmbeddingMethod.DOC2VEC.value:
         # DOC2VEC
         logger.info('Using Doc2Vec method.')
-        get_doc2vec_embeddings(parsed_args['train_data_path'], parsed_args['output_dir'], parsed_args['doc2vec_args'])
+        res_path = get_doc2vec_embeddings(parsed_args['train_data_path'], parsed_args['output_dir'], parsed_args['doc2vec_args'])
     else:
         raise NotImplementedError('Method {0} not implemented'.format(parsed_args['method']))
+
+    logger.info('Embeddings saved to {}'.format(res_path))
 
 
 def _task_train_test_split(parsed_args: dict):
@@ -135,6 +137,8 @@ def _task_evaluate(parsed_args: dict):
 
 def _get_clf_stored_embeddings(parsed_args: dict) -> AClassifier:
     """Get AClassifier instance initialized with stored embeddings."""
+
+    logger.info('Initializing classifier using stored embeddings.')
 
     if parsed_args['method'] == EntityEmbeddingMethod.STARSPACE.value:
         # STARSPACE
@@ -159,6 +163,8 @@ def _get_clf_stored_embeddings(parsed_args: dict) -> AClassifier:
 
 def _get_clf_gs(parsed_args: dict) -> AClassifier:
     """Get AClassifier instance initialized with embeddings computed using parameters obtained with a grid-search."""
+
+    logger.info('Training classifier using grid-search.')
 
     if not all([el in [e.value for e in EntityEmbeddingMethod] and el != EntityEmbeddingMethod.STARSPACE.value for el in parsed_args['method']]):
         raise NotImplementedError('Method \'{}\' not supported when using grid search.')

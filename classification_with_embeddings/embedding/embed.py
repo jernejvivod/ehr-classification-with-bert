@@ -10,7 +10,7 @@ from classification_with_embeddings.util.errors import EmbeddingError
 from classification_with_embeddings.util.iterators import SentenceIteratorFastTextFormat
 
 
-def get_starspace_embeddings(starspace_path: str, train_data_path: str, output_dir: str, starspace_args: str) -> None:
+def get_starspace_embeddings(starspace_path: str, train_data_path: str, output_dir: str, starspace_args: str) -> str:
     """Get entity embeddings using StarSpace.
 
     :param starspace_path: path to StarSpace executable
@@ -21,16 +21,15 @@ def get_starspace_embeddings(starspace_path: str, train_data_path: str, output_d
 
     model_path = os.path.join(os.path.abspath(output_dir), 'starspace_model.tsv')
     p = subprocess.run(
-        [starspace_path, 'train', '-trainFile', train_data_path, '-model', os.path.join(os.path.abspath(output_dir), 'starspace_model')] + starspace_args.split()
+        [starspace_path, 'train', '-trainFile', train_data_path, '-model', model_path] + starspace_args.split()
     )
     if p.returncode != 0:
         raise EmbeddingError('StarSpace', p.returncode)
 
-    logger.info('Successfuly saved StarSpace embeddings.')
-    print('Entity embeddings saved to {}'.format(model_path))
+    return model_path
 
 
-def get_word2vec_embeddings(train_data_path: str, output_dir: str, word2vec_args: str) -> None:
+def get_word2vec_embeddings(train_data_path: str, output_dir: str, word2vec_args: str) -> str:
     """Get entity embeddings using Word2Vec.
 
     :param train_data_path: path to training data in fastText format
@@ -43,14 +42,13 @@ def get_word2vec_embeddings(train_data_path: str, output_dir: str, word2vec_args
         w2v_model = Word2Vec(sentences=sent_it, **model_params)
 
         # save embeddings in TSV format
-        logger.info('Saving computed Word2Vec embeddings.')
         output_file_name = 'word2vec_model.tsv'
         out_path = _save_wv_to_file(w2v_model, output_dir, output_file_name)
 
-    print('Entity embeddings saved to {0}'.format(out_path))
+    return out_path
 
 
-def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args: str) -> None:
+def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args: str) -> str:
     """Get entity embeddings using fastText.
 
     :param train_data_path: path to training data in fastText format
@@ -64,14 +62,13 @@ def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args
         ft_model.train(corpus_iterable=sent_it, total_examples=len(sent_it), epochs=10)
 
         # save embeddings in TSV format
-        logger.info('Saving computed fastText embeddings.')
         output_file_name = 'fasttext_model.tsv'
         out_path = _save_wv_to_file(ft_model, output_dir, output_file_name)
 
-    print('Entity embeddings saved to {0}'.format(out_path))
+    return out_path
 
 
-def get_doc2vec_embeddings(train_data_path: str, output_dir: str, doc2vec_args: str) -> None:
+def get_doc2vec_embeddings(train_data_path: str, output_dir: str, doc2vec_args: str) -> str:
     """Get entity embeddings using Doc2Vec.
 
     :param train_data_path: path to training data in fastText format
@@ -84,10 +81,11 @@ def get_doc2vec_embeddings(train_data_path: str, output_dir: str, doc2vec_args: 
         model = Doc2Vec(tagged_data, **model_params)
 
         # save model
-        logger.info('Saving computed Doc2Vec model.')
         output_file_name = 'doc2vec_model.bin'
         out_path = os.path.join(output_dir, output_file_name)
         model.save(out_path)
+
+    return out_path
 
 
 def _parse_params_or_get_default(model_params: str, default_params: dict):
