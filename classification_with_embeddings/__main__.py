@@ -2,6 +2,7 @@ import argparse
 import sys
 
 from gensim.models import Doc2Vec
+from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
@@ -197,6 +198,8 @@ def _get_internal_clf(internal_clf_kind: str):
         return RandomForestClassifier
     elif internal_clf_kind == InternalClassifier.SVC.value:
         return SVC
+    elif internal_clf_kind == InternalClassifier.DUMMY.value:
+        return DummyClassifier
     else:
         raise NotImplementedError('Classifier {0} not implemented.'.format(internal_clf_kind))
 

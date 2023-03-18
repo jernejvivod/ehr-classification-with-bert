@@ -26,6 +26,7 @@ class InternalClassifier(Enum):
     LOGISTIC_REGRESSION = 'logistic-regression'
     RANDOM_FOREST = 'random-forest'
     SVC = 'svc'
+    DUMMY = 'dummy'
 
 
 LABEL_WORD_PREFIX = '__label__'
