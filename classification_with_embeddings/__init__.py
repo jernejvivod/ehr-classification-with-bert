@@ -1,6 +1,8 @@
 import logging
 from enum import Enum
 
+__version__ = "0.1.0"
+
 # module logger
 
 logging.basicConfig()

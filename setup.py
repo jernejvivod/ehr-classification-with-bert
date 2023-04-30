@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='text-classification-with-embeddings',
+    name='classification-with-embeddings',
     version='0.1.0',
     packages=find_packages(),
     url='https://github.com/jernejvivod/classification-with-embeddings',

@@ -56,7 +56,7 @@ def _add_subparser_for_get_entity_embeddings(subparsers):
     get_entity_embeddings_parser = subparsers.add_parser(Tasks.GET_ENTITY_EMBEDDINGS.value)
     get_entity_embeddings_parser.add_argument('--method', type=str, default=EntityEmbeddingMethod.STARSPACE.value,
                                               choices=[v.value for v in EntityEmbeddingMethod], help='Method of generating entity embeddings')
-    get_entity_embeddings_parser.add_argument('--train-data-path', type=file_path, required=True, help='Path to file containing the training data in fastText format')
+    get_entity_embeddings_parser.add_argument('--train-data-path', type=file_path, required=True, help='Path to file containing the training data in FastText format')
     get_entity_embeddings_parser.add_argument('--output-dir', type=dir_path, default='.', help='Path to directory in which to save the embeddings')
     get_entity_embeddings_parser.add_argument('--starspace-path', type=file_path, help='Path to StarSpace executable')
     get_entity_embeddings_parser.add_argument('--starspace-args', type=str, default='',
@@ -91,7 +91,7 @@ def _add_subparser_for_evaluation(subparsers):
     evaluate_parser.add_argument('--doc2vec-model-path', type=file_path, help='Path to stored Doc2Vec model')
     evaluate_parser.add_argument('--binary', action='store_true', help='Embeddings are stored in binary format')
     evaluate_parser.add_argument('--results-path', type=dir_path, default='.', help='Path to directory in which to save the results')
-    evaluate_parser.add_argument('--internal-clf', type=str, default=InternalClassifier.RANDOM_FOREST.value, help='Internal classifier to use (if applicable)')
+    evaluate_parser.add_argument('--internal-clf', type=str, choices=[e.value for e in InternalClassifier], default=InternalClassifier.RANDOM_FOREST.value, help='Internal classifier to use (if applicable)')
     evaluate_parser.add_argument('--internal-clf-args', type=str, default='',
                                  help='Arguments passed to internal classifier if applicable (key-value pairs such as val=1 enclose in quotes with no commas separated by spaces)')
 
