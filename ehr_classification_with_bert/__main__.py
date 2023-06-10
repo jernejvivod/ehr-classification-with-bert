@@ -49,7 +49,7 @@ def _run_task(parsed_args: dict):
 
         loaded_model = AutoModelForSequenceClassification.from_pretrained(
             parsed_args['model_path']
-        )
+        ).to(device)
 
         eval_dataloader = _util.get_dataloader(
             dataset_name=parsed_args['dataset'],
