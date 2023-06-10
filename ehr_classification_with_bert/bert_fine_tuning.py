@@ -27,7 +27,7 @@ def fine_tune_bert(train_dataloader: DataLoader,
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model,
         num_labels=n_labels
-    )
+    ).to(device)
 
     num_training_steps = n_epochs * len(train_dataloader)
 
@@ -38,7 +38,6 @@ def fine_tune_bert(train_dataloader: DataLoader,
         name='linear', optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
     )
 
-    model.to(device)
     model.train()
 
     progress_bar = tqdm(range(num_training_steps))
