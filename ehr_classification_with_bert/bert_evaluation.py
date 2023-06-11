@@ -4,7 +4,7 @@ import evaluate
 import torch
 from torch.utils.data import DataLoader
 
-from ehr_classification_with_bert import device
+from ehr_classification_with_bert import device, logger
 
 
 def evaluate_model(model, eval_dataloader: DataLoader, results_path: str = '.'):
@@ -28,5 +28,9 @@ def evaluate_model(model, eval_dataloader: DataLoader, results_path: str = '.'):
 
     result = metric.compute()
 
-    with open(os.path.abspath(os.path.join(results_path, 'results.txt')), 'w') as f:
+    results_file = 'results.txt'
+
+    logger.info('Saving results to %s', os.path.join(os.path.abspath(results_path), results_file))
+
+    with open(os.path.abspath(os.path.join(results_path, results_file)), 'w') as f:
         f.write('accuracy: {:.2f}'.format(result['accuracy']))
