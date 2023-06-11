@@ -1,3 +1,5 @@
+import os.path
+
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
@@ -53,5 +55,5 @@ def fine_tune_bert(train_dataloader: DataLoader,
 
             progress_bar.update(1)
 
-    logger.info('Saving fine-tuned model to %s', model_save_path)
+    logger.info('Saving fine-tuned model to %s', os.path.abspath(model_save_path))
     model.save_pretrained(model_save_path)
