@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Iterator, Union
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
@@ -10,14 +10,15 @@ class ADocEmbedder(ABC, BaseEstimator, TransformerMixin):
     """Base class for transformers that perform embedding of documents/sentences and produce matrix-form embeddings."""
 
     @abstractmethod
-    def get_word_to_embedding(self, train_sentences: List[List[str]]):
+    def get_word_to_embedding(self, train_sentences: Union[List[List[str]], Iterator]):
         pass
 
     def __init__(self, vector_size: int = 100):
         self.vector_size = vector_size
+        self.method_kwargs = {}
         self._word_to_embedding = None
 
-    def fit(self, train_sentences: List[List[str]], y):
+    def fit(self, train_sentences: Union[List[List[str]], Iterator], y):
         self._word_to_embedding = self.get_word_to_embedding(train_sentences)
         return self
 

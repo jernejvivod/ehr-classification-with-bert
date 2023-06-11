@@ -4,7 +4,7 @@ import subprocess
 from gensim.models import Word2Vec, FastText
 from gensim.models.doc2vec import TaggedDocument, Doc2Vec
 
-from classification_with_embeddings.embedding import logger
+from classification_with_embeddings.evaluation.embedders.a_doc_embedder import ADocEmbedder
 from classification_with_embeddings.util.arguments import process_param_spec
 from classification_with_embeddings.util.errors import EmbeddingError
 from classification_with_embeddings.util.iterators import SentenceIteratorFastTextFormat
@@ -19,7 +19,7 @@ def get_starspace_embeddings(starspace_path: str, train_data_path: str, output_d
     :param starspace_args: arguments passed to StarSpace implementation
     """
 
-    model_path = os.path.join(os.path.abspath(output_dir), 'starspace_model.tsv')
+    model_path = os.path.join(os.path.abspath(output_dir), 'starspace_model')
     p = subprocess.run(
         [starspace_path, 'train', '-trainFile', train_data_path, '-model', model_path] + starspace_args.split()
     )
@@ -88,7 +88,26 @@ def get_doc2vec_embeddings(train_data_path: str, output_dir: str, doc2vec_args: 
     return out_path
 
 
-def _parse_params_or_get_default(model_params: str, default_params: dict):
+def get_doc_embedder_instance(method: str, train_data_path: str, method_args: str = "") -> ADocEmbedder:
+    """get ADocEmbedder instance trained on specified training file
+
+    :param method: embedding method to use ('word2vec', 'fasttext', 'doc2vec', or 'starspace')
+    :param train_data_path: path to training data in fastText format
+    :param method_args: arguments passed to embedding implementation
+    """
+
+    with SentenceIteratorFastTextFormat(train_data_path) as sent_it:
+        model_params = _parse_params_or_get_default(method_args, {})
+
+        # get model
+        doc_embedder = ADocEmbedder.factory(method)
+        doc_embedder.method_kwargs = model_params
+        doc_embedder.fit(sent_it, None)
+
+    return doc_embedder
+
+
+def _parse_params_or_get_default(model_params: str, default_params: dict) -> dict:
     """Parse embedding model arguments specified as string containing key-value pairs or return provided
     defaults if none specified.
 
@@ -102,7 +121,7 @@ def _parse_params_or_get_default(model_params: str, default_params: dict):
         return default_params
 
 
-def _save_wv_to_file(model, output_dir: str, output_file_name: str):
+def _save_wv_to_file(model, output_dir: str, output_file_name: str) -> str:
     """Save word vectors computed using a gensim model to a file.
 
     :param model: trained gensim model

@@ -6,9 +6,15 @@ from typing import Final
 from classification_with_embeddings.embedding.embed import (
     get_word2vec_embeddings,
     get_fasttext_embeddings,
-    get_starspace_embeddings, get_doc2vec_embeddings
+    get_starspace_embeddings,
+    get_doc2vec_embeddings,
+    get_doc_embedder_instance
 )
-from classification_with_embeddings.embedding.embed_util import get_aggregate_embedding, get_word_to_embedding, get_aggregate_embeddings
+from classification_with_embeddings.embedding.embed_util import (
+    get_aggregate_embedding,
+    get_word_to_embedding,
+    get_aggregate_embeddings
+)
 from test.test_utils import get_relative_path
 
 
@@ -60,6 +66,12 @@ class TestEmbed(unittest.TestCase):
 
         aggregate_embs = get_aggregate_embeddings([['something'], ['this', 'something'], ['this', 'something', 'is', 'nothing']], word_to_embedding)
         self.assertEqual([[0, 0, 0], [0.1, 0.2, 0.3], [1.0 / 2.0, 0.5 / 2.0, 0.8 / 2.0]], aggregate_embs.tolist())
+
+    def test_get_doc_embedder_instance(self):
+        doc_embedder = get_doc_embedder_instance('word2vec', get_relative_path(__file__, '../mock_data/sanity_check_dataset_train.txt'))
+        self.assertIsNotNone(doc_embedder)
+        res = doc_embedder.transform([['pear', 'apple'], ['cat', 'hedgehog']])
+        self.assertEqual((2, 100), res.shape)
 
     def _assert_and_delete_created_embeddings_file(self, file_path: str, n_embeddings: int):
         # test saved file contents correct
