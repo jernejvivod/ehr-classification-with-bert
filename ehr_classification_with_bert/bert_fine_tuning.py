@@ -26,25 +26,30 @@ def fine_tune_bert(train_dataloader: DataLoader,
     logger.info('Fine-tuning BERT model with n_labels: %d, save_path: %s, num_epochs: %d',
                 n_labels, model_save_path, n_epochs)
 
+    # load model
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model,
         num_labels=n_labels
     ).to(device)
 
+    # compute number of required training steps
     num_training_steps = n_epochs * len(train_dataloader)
 
     logger.info('Fine-tuning will take %d training steps.', num_training_steps)
 
+    # initialize optimizer ands learning rate sheduler
     optimizer = AdamW(model.parameters(), lr=5e-5)
     lr_scheduler = get_scheduler(
         name='linear', optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
     )
 
+    # train model
     model.train()
 
     progress_bar = tqdm(range(num_training_steps))
     for epoch in range(n_epochs):
         for batch in train_dataloader:
+            batch.pop('text')  # TODO should only remove if using BERT-only model
             outputs = model(**{k: v.to(device) for k, v in batch.items()})
             loss = outputs.loss
 

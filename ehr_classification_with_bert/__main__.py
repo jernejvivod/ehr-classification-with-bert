@@ -6,7 +6,7 @@ from transformers import AutoModelForSequenceClassification
 
 from ehr_classification_with_bert import _util, Tasks, logger, device
 from ehr_classification_with_bert._util import argparse_type_file_path, argparse_type_dir_path
-from ehr_classification_with_bert.bert_evaluation import evaluate_model
+from ehr_classification_with_bert.bert_evaluation import evaluate_model_segmented, evaluate_model
 from ehr_classification_with_bert.bert_fine_tuning import fine_tune_bert
 
 
@@ -35,7 +35,9 @@ def _run_task(parsed_args: dict):
             n_labels=parsed_args['n_labels'],
             split=Split.TRAIN,
             batch_size=parsed_args['batch_size'],
-            truncate_dataset_to=parsed_args['truncate_dataset_to']
+            truncate_dataset_to=parsed_args['truncate_dataset_to'],
+            split_above_tokens_limit=parsed_args['split_long_examples'],
+            group_splits=False
         )
 
         fine_tune_bert(
@@ -57,43 +59,54 @@ def _run_task(parsed_args: dict):
             data_file_path=parsed_args['data_file_path'],
             n_labels=parsed_args['n_labels'],
             split=Split.TEST,
-            batch_size=parsed_args['batch_size'],
-            truncate_dataset_to=parsed_args['truncate_dataset_to']
+            batch_size=1 if parsed_args['segmented'] else parsed_args['batch_size'],
+            truncate_dataset_to=parsed_args['truncate_dataset_to'],
+            split_above_tokens_limit=parsed_args['segmented'],
+            group_splits=parsed_args['segmented']
         )
 
-        evaluate_model(loaded_model, eval_dataloader)
+        if parsed_args['segmented']:
+            evaluate_model_segmented(loaded_model, eval_dataloader)
+        else:
+            evaluate_model(loaded_model, eval_dataloader)
 
 
 def _add_subparsers_for_fine_tune(subparsers):
     fine_tune_parser = subparsers.add_parser(Tasks.FINE_TUNE.value)
     fine_tune_parser.add_argument('--data-file-path', type=argparse_type_file_path, required=True,
-                                  help='Path to file containing the fine-tuning data')
+                                  help='Path to file containing the fine-tuning data.')
     fine_tune_parser.add_argument('--n-labels', type=_util.argparse_type_positive_int, required=True,
-                                  help='Number of unique labels in the dataset')
+                                  help='Number of unique labels in the dataset.')
     fine_tune_parser.add_argument('--base-model', type=str, default='bert-base-cased',
-                                  help='Base BERT model to use')
+                                  help='Base BERT model to use.')
     fine_tune_parser.add_argument('--model-save-path', type=argparse_type_dir_path, default='.',
-                                  help='Path to directory in which to save the fine-tuned model')
+                                  help='Path to directory in which to save the fine-tuned model.')
     fine_tune_parser.add_argument('--n-epochs', type=_util.argparse_type_positive_int, default=4,
-                                  help='Number of epochs to use during fine-tuning')
+                                  help='Number of epochs to use during fine-tuning.')
     fine_tune_parser.add_argument('--batch-size', type=_util.argparse_type_positive_int, default=16,
-                                  help='Batch size to use during fine-tuning')
+                                  help='Batch size to use during fine-tuning.')
     fine_tune_parser.add_argument('--truncate-dataset-to', type=_util.argparse_type_positive_int,
-                                  help='Truncate the dataset to the specified number of samples')
+                                  help='Truncate the dataset to the specified number of samples.')
+    fine_tune_parser.add_argument('--split-long-examples', action='store_true',
+                                  help='Split examples whose token length is longer than the maximum length accepted by'
+                                       ' the model into multiple examples.')
 
 
 def _add_subparsers_for_evaluate(subparsers):
     fine_tune_parser = subparsers.add_parser(Tasks.EVALUATE.value)
     fine_tune_parser.add_argument('--model-path', type=argparse_type_dir_path, required=True,
-                                  help='Path to directory containing the saved model to evaluate')
+                                  help='Path to directory containing the saved model to evaluate.')
     fine_tune_parser.add_argument('--data-file-path', type=argparse_type_file_path, required=True,
-                                  help='Path to file containing the evaluation data')
+                                  help='Path to file containing the evaluation data.')
     fine_tune_parser.add_argument('--n-labels', type=_util.argparse_type_positive_int, required=True,
-                                  help='Number of unique labels in the dataset')
+                                  help='Number of unique labels in the dataset.')
     fine_tune_parser.add_argument('--batch-size', type=_util.argparse_type_positive_int, default=16,
-                                  help='Batch size to use during evaluation')
+                                  help='Batch size to use during evaluation. Ignored if --segmented flag is used.')
     fine_tune_parser.add_argument('--truncate-dataset-to', type=_util.argparse_type_positive_int,
-                                  help='Truncate the dataset to the specified number of samples')
+                                  help='Truncate the dataset to the specified number of samples.')
+    fine_tune_parser.add_argument('--segmented', action='store_true',
+                                  help='Evaluate model on segmented test data by applying it to each segment and'
+                                       ' taking the mode of the segment predictions as the prediction for an example.')
 
 
 if __name__ == '__main__':
