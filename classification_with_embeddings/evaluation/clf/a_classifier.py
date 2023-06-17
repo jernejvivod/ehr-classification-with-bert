@@ -10,11 +10,11 @@ class AClassifier(ABC):
     """
 
     @abstractmethod
-    def predict(self, sentences: List[List[str]]) -> np.ndarray[1, ...]:
+    def predict(self, sentences: List[List[str]]) -> np.ndarray:
         pass
 
     @abstractmethod
-    def predict_proba(self, sentences: List[List[str]]) -> np.ndarray[1, ...]:
+    def predict_proba(self, sentences: List[List[str]]) -> np.ndarray:
         pass
 
     @abstractmethod

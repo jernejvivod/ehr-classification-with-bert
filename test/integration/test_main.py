@@ -53,7 +53,7 @@ class TestMain(unittest.TestCase):
         # using stored embeddings
         argv_evaluate = [
             __file__,
-            'evaluate',
+            'evaluate_embeddings_model',
             '--method', 'word2vec',
             '--train-data-path', get_relative_path(__file__, '../mock_data/sanity_check_dataset_train.txt'),
             '--test-data-path', get_relative_path(__file__, '../mock_data/sanity_check_dataset.txt'),
@@ -66,7 +66,7 @@ class TestMain(unittest.TestCase):
         # using grid-search
         argv_evaluate_gs = [
             __file__,
-            'evaluate',
+            'evaluate_embeddings_model',
             '--method', 'fasttext',
             '--param-grid-path', get_relative_path(__file__, '../mock_data/param_grid.json'),
             '--cv', '3',
@@ -80,7 +80,7 @@ class TestMain(unittest.TestCase):
         # using grid-search with multiple documents relating to a single entity
         argv_evaluate_gs = [
             __file__,
-            'evaluate',
+            'evaluate_embeddings_model',
             '--method', 'word2vec', 'fasttext',
             '--param-grid-path', get_relative_path(__file__, '../mock_data/param_grid.json'),
             '--cv', '3',

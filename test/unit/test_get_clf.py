@@ -25,13 +25,23 @@ class TestGetClf(unittest.TestCase):
         self._assert_pred(clf, self.test_samples)
 
     def test_get_clf_with_internal_clf_gs(self):
-        clf = get_clf_with_internal_clf_gs(get_relative_path(__file__, '../mock_data/data_10_rows.txt'), get_relative_path(__file__, '../mock_data/data_10_rows.txt'), param_grid={}, embedding_method='word2vec')
+        clf = get_clf_with_internal_clf_gs(
+            get_relative_path(__file__, '../mock_data/data_10_rows.txt'),
+            get_relative_path(__file__, '../mock_data/data_10_rows.txt'),
+            param_grid={},
+            embedding_method='word2vec'
+        )
         self._assert_pred(clf, self.test_samples)
 
     def test_get_clf_with_internal_clf_gs_multiple(self):
         file_data = get_relative_path(__file__, '../mock_data/data_10_rows.txt')
 
-        clf = get_clf_with_internal_clf_gs([file_data, file_data], [file_data, file_data], param_grid={}, embedding_method=['word2vec', 'fasttext'])
+        clf = get_clf_with_internal_clf_gs(
+            [file_data, file_data],
+            [file_data, file_data],
+            param_grid={},
+            embedding_method=['word2vec', 'fasttext']
+        )
         self._assert_pred(clf, self.test_samples_multiple)
 
     def test_get_clf_with_internal_clf_doc2vec(self):
@@ -48,7 +58,7 @@ class TestGetClf(unittest.TestCase):
     def _assert_pred(self, clf, test_samples):
         self.assertIsNotNone(clf)
 
-        def assert_probs(probs: np.ndarray[..., 2]):
+        def assert_probs(probs: np.ndarray):
             for p in probs:
                 self.assertEqual(2, len(p))
                 for e in p:

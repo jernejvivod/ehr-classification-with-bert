@@ -11,11 +11,11 @@ class Classifier(AClassifier):
     a mapping from words to their embeddings.
     """
 
-    def __init__(self, clf, word_to_embedding: Dict[str, np.ndarray[1, ...]]):
+    def __init__(self, clf, word_to_embedding: Dict[str, np.ndarray]):
         self._clf = clf
         self._word_to_embedding = word_to_embedding
 
-    def predict(self, sentences: List[List[str]]) -> np.ndarray[1, ...]:
+    def predict(self, sentences: List[List[str]]) -> np.ndarray:
         aggregate_embeddings = get_aggregate_embeddings(sentences, self._word_to_embedding)
         return self._clf.predict(aggregate_embeddings)
 

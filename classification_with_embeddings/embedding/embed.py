@@ -38,7 +38,10 @@ def get_word2vec_embeddings(train_data_path: str, output_dir: str, word2vec_args
     """
 
     with SentenceIteratorFastTextFormat(train_data_path) as sent_it:
-        model_params = _parse_params_or_get_default(word2vec_args, default_params={'vector_size': 100, 'window': 5, 'min_count': 1, 'workers': 4})
+        model_params = _parse_params_or_get_default(
+            word2vec_args,
+            default_params={'vector_size': 100, 'window': 5, 'min_count': 1, 'workers': 4}
+        )
         w2v_model = Word2Vec(sentences=sent_it, **model_params)
 
         # save embeddings in TSV format
@@ -56,7 +59,10 @@ def get_fasttext_embeddings(train_data_path: str, output_dir: str, fasttext_args
     :param fasttext_args: arguments passed to fastText implementation
     """
     with SentenceIteratorFastTextFormat(train_data_path) as sent_it:
-        model_params = _parse_params_or_get_default(fasttext_args, {'vector_size': 10, 'window': 3, 'min_count': 1})
+        model_params = _parse_params_or_get_default(
+            fasttext_args,
+            {'vector_size': 10, 'window': 3, 'min_count': 1}
+        )
         ft_model = FastText(**model_params)
         ft_model.build_vocab(corpus_iterable=sent_it)
         ft_model.train(corpus_iterable=sent_it, total_examples=len(sent_it), epochs=10)
@@ -77,7 +83,10 @@ def get_doc2vec_embeddings(train_data_path: str, output_dir: str, doc2vec_args: 
     """
     with SentenceIteratorFastTextFormat(train_data_path) as sent_it:
         tagged_data = [TaggedDocument(words=s, tags=[str(i)]) for i, s in enumerate(sent_it)]
-        model_params = _parse_params_or_get_default(doc2vec_args, {'vector_size': 100, 'window': 2, 'min_count': 1, 'epochs': 10})
+        model_params = _parse_params_or_get_default(
+            doc2vec_args,
+            {'vector_size': 100, 'window': 2, 'min_count': 1, 'epochs': 10}
+        )
         model = Doc2Vec(tagged_data, **model_params)
 
         # save model

@@ -1,6 +1,8 @@
 import logging
 from enum import Enum
 
+import torch
+
 __version__ = "0.1.0"
 
 # module logger
@@ -12,8 +14,10 @@ logger.setLevel(logging.INFO)
 
 class Tasks(Enum):
     GET_ENTITY_EMBEDDINGS = 'get-entity-embeddings'
+    TRAIN_CNN_MODEL = 'train-cnn-model'
     TRAIN_TEST_SPLIT = 'train-test-split'
-    EVALUATE = 'evaluate'
+    EVALUATE_EMBEDDINGS_MODEL = 'evaluate-embeddings-model'
+    EVALUATE_CNN_MODEL = 'evaluate-cnn-model'
 
 
 class EntityEmbeddingMethod(Enum):
@@ -32,3 +36,5 @@ class InternalClassifier(Enum):
 
 
 LABEL_WORD_PREFIX = '__label__'
+
+torch_device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')

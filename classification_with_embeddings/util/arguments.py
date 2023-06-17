@@ -3,7 +3,8 @@ from typing import Callable, Tuple, Iterable, List
 
 
 def process_param_spec(params_str: str) -> dict:
-    """Construction dictionary from function parameters specified using the command-line interface with key-value pairs (e.g. "val=3").
+    """Construction dictionary from function parameters specified using the command-line interface with
+    key-value pairs (e.g. "val=3").
 
     :param params_str: string specifying the key value pairs
     :return: constructed dictionary
@@ -22,20 +23,33 @@ def process_param_spec(params_str: str) -> dict:
     return params_dict
 
 
-def get_train_and_val_paths_for_multiple_train_files(get_train_test_split_for_path_and_suffixes: Callable[[str, str, str], Tuple[str, str]], paths: Iterable[str], train_suffix: str, test_suffix: str) -> Tuple[List[str], List[str]]:
-    """Get files corresponding to a train-test split of the data in specified files in fastText format where rows with the same index in the different files contain information about the same entity.
+def get_train_and_val_paths_for_multiple_train_files(
+        get_train_test_split_for_path_and_suffixes: Callable[[str, str, str], Tuple[str, str]],
+        paths: Iterable[str],
+        train_suffix: str,
+        test_suffix: str) -> Tuple[List[str], List[str]]:
+    """Get files corresponding to a train-test split of the data in specified files in fastText format where rows with
+    the same index in the different files contain information about the same entity.
 
-    :param get_train_test_split_for_path_and_suffixes: function that takes a path to a file containing training data, suffix to apply to file name containing the training data, and suffix to apply to file name containing the validation data
+    :param get_train_test_split_for_path_and_suffixes: function that takes a path to a file containing training data,
+    suffix to apply to file name containing the training data, and suffix to apply to file name containing the
+    validation data
     :param paths: paths to files containing the samples in fastText format
-    :param train_suffix: base suffix to apply to file name containing the training data (the index of the output file is appended to this suffix)
-    :param test_suffix: base suffix to apply to file name containing the test data (the index of the output files is appended to this suffix)
+    :param train_suffix: base suffix to apply to file name containing the training data (the index of the output file is
+    appended to this suffix)
+    :param test_suffix: base suffix to apply to file name containing the test data
+    (the index of the output files is appended to this suffix)
     :return: tuple containing the paths to the output training files and paths to the output test files
     """
 
     train_paths = []
     val_paths = []
     for idx, path in enumerate(paths):
-        train_path_nxt, test_path_nxt = get_train_test_split_for_path_and_suffixes(path, train_suffix + str(idx), test_suffix + str(idx))
+        train_path_nxt, test_path_nxt = get_train_test_split_for_path_and_suffixes(
+            path,
+            train_suffix + str(idx),
+            test_suffix + str(idx)
+        )
         train_paths.append(train_path_nxt)
         val_paths.append(test_path_nxt)
 

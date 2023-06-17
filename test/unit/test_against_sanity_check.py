@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from classification_with_embeddings.embedding.embed import get_word2vec_embeddings, get_fasttext_embeddings, get_starspace_embeddings, get_doc2vec_embeddings
 from classification_with_embeddings.embedding.embed_util import get_word_to_embedding
-from classification_with_embeddings.evaluation.evaluate import evaluate
+from classification_with_embeddings.evaluation.evaluate import evaluate_embeddings_model
 from classification_with_embeddings.evaluation.get_clf import get_clf_starspace, get_clf_with_internal_clf, get_clf_with_internal_clf_doc2vec, get_clf_with_internal_clf_gs
 from classification_with_embeddings.train_test_split.train_test_split import get_train_test_split
 from test.test_utils import get_relative_path
@@ -64,11 +64,11 @@ class TestEmbed(unittest.TestCase):
         else:
             raise NotImplementedError('Unknown method {}.'.format(embedding_method))
 
-        evaluate(clf, embedding_method, get_relative_path(__file__, self.TEST_SET_PATH), self.OUT_PATH)
+        evaluate_embeddings_model(clf, embedding_method, get_relative_path(__file__, self.TEST_SET_PATH), self.OUT_PATH)
 
     def _run_test_classification_gs_sanity_check(self, embedding_method: str, param_grid: dict, clf_internal=RandomForestClassifier):
         clf = get_clf_with_internal_clf_gs(self.TRAINING_SET_PATH_GS, self.VALIDATION_SET_PATH_GS, clf_internal=clf_internal, param_grid=param_grid, embedding_method=embedding_method)
-        evaluate(clf, embedding_method, get_relative_path(__file__, self.TEST_SET_PATH), self.OUT_PATH)
+        evaluate_embeddings_model(clf, embedding_method, get_relative_path(__file__, self.TEST_SET_PATH), self.OUT_PATH)
 
     def _get_train_validation_split(self, data_path: str, output_dir: str):
         get_train_test_split(data_path, output_dir, train_size=0.7, train_suffix=self.TRAIN_SET_SUFFIX_FOR_GS, test_suffix=self.VALIDATION_SET_SUFFIX_FOR_GS)

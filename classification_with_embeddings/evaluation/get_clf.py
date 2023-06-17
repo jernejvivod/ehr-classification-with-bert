@@ -1,4 +1,4 @@
-from typing import Callable, List, Iterable
+from typing import Callable, List, Iterable, Union, Dict
 
 import numpy as np
 from gensim.models import Doc2Vec
@@ -21,7 +21,10 @@ from classification_with_embeddings.evaluation.util import _fasttext_data_to_x_y
 from classification_with_embeddings.util.arguments import process_param_spec
 
 
-def get_clf_with_internal_clf(word_to_embedding: dict[str, np.ndarray[1, ...]], training_data_path: str, clf_internal=None, internal_clf_args: str = '') -> AClassifier:
+def get_clf_with_internal_clf(word_to_embedding: Dict[str, np.ndarray],
+                              training_data_path: str,
+                              clf_internal=None,
+                              internal_clf_args: str = '') -> AClassifier:
     """Get internal classifier-based classifier using on stored embeddings.
 
     :param word_to_embedding: mapping of words to their embeddings
@@ -40,7 +43,12 @@ def get_clf_with_internal_clf(word_to_embedding: dict[str, np.ndarray[1, ...]], 
     return _init_clf(get_aggr_embedding, get_clf, training_data_path, clf_internal, internal_clf_args)
 
 
-def get_clf_with_internal_clf_gs(train_data_path: str | Iterable[str], validation_data_path: str | Iterable[str], param_grid: dict, embedding_method: str | List[str] = 'word2vec', clf_internal=RandomForestClassifier, cv: int = 5) -> AClassifier:
+def get_clf_with_internal_clf_gs(train_data_path: Union[str, Iterable[str]],
+                                 validation_data_path: Union[str,  Iterable[str]],
+                                 param_grid: dict,
+                                 embedding_method: Union[str, List[str]] = 'word2vec',
+                                 clf_internal=RandomForestClassifier,
+                                 cv: int = 5) -> AClassifier:
     """get internal classifier-based classifier (used within pipeline) with parameters tuned using grid-search.
 
     :param train_data_path: path to file containing the training data in fastText format
@@ -56,13 +64,23 @@ def get_clf_with_internal_clf_gs(train_data_path: str | Iterable[str], validatio
     clf_pipeline = Pipeline([('embedding', ADocEmbedder.factory(embedding_method)), ('scaling', RobustScaler()), ('classification', clf_internal())])
 
     # run grid search
-    grid_search = GridSearchCV(estimator=clf_pipeline, param_grid=param_grid if param_grid is not None else dict(), cv=cv, scoring='accuracy', n_jobs=-1)
-    validation_sentences, validation_labels = _fasttext_data_to_x_y(validation_data_path) if isinstance(validation_data_path, str) else _fasttext_data_to_x_y_multiple(validation_data_path)
+    grid_search = GridSearchCV(
+        estimator=clf_pipeline,
+        param_grid=param_grid if param_grid is not None else dict(),
+        cv=cv,
+        scoring='accuracy',
+        n_jobs=-1
+    )
+
+    validation_sentences, validation_labels = _fasttext_data_to_x_y(validation_data_path) if \
+        isinstance(validation_data_path, str) else _fasttext_data_to_x_y_multiple(validation_data_path)
+
     logger.info('Performing grid-search.')
     grid_search.fit(validation_sentences, validation_labels)
 
     # train best estimator
-    train_sentences, train_labels = _fasttext_data_to_x_y(train_data_path) if isinstance(train_data_path, str) else _fasttext_data_to_x_y_multiple(train_data_path)
+    train_sentences, train_labels = _fasttext_data_to_x_y(train_data_path) if \
+        isinstance(train_data_path, str) else _fasttext_data_to_x_y_multiple(train_data_path)
     logger.info('Training best model.')
     clf = grid_search.best_estimator_.fit(train_sentences, train_labels)
 
@@ -70,7 +88,10 @@ def get_clf_with_internal_clf_gs(train_data_path: str | Iterable[str], validatio
     return PipelineClassifier(clf)
 
 
-def get_clf_with_internal_clf_doc2vec(doc2vec_model: Doc2Vec, training_data_path: str, clf_internal=None, internal_clf_args: str = ''):
+def get_clf_with_internal_clf_doc2vec(doc2vec_model: Doc2Vec,
+                                      training_data_path: str,
+                                      clf_internal=None,
+                                      internal_clf_args: str = ''):
     """Get internal classifier-based classifier using a stored Doc2Vec model.
 
     :param doc2vec_model: gensim's Doc2Vec model
@@ -101,7 +122,11 @@ def get_clf_starspace(word_to_embedding: dict) -> AClassifier:
     return StarSpaceClassifier(word_to_embedding)
 
 
-def _init_clf(get_aggr_embedding: Callable[[List[str]], np.ndarray[1, ...]], get_clf: Callable[[ClassifierMixin], AClassifier], training_data_path: str, clf_internal=None, internal_clf_args: str = ''):
+def _init_clf(get_aggr_embedding: Callable[[List[str]], np.ndarray],
+              get_clf: Callable[[ClassifierMixin], AClassifier],
+              training_data_path: str,
+              clf_internal=None,
+              internal_clf_args: str = ''):
     """Initialize AClassifier instance.
 
     :param get_aggr_embedding: function mapping a string sample (document) to an aggregate embedding

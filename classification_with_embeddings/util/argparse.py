@@ -25,3 +25,13 @@ def proportion_float(val: str) -> float:
             raise ValueError
     except ValueError:
         raise argparse.ArgumentTypeError('Value must be between 0.0 and 1.0')
+
+
+def positive_int(value):
+    try:
+        value = int(value)
+        if value <= 0:
+            raise argparse.ArgumentTypeError("{} is not a positive integer.".format(value))
+        return value
+    except ValueError:
+        raise argparse.ArgumentTypeError("{} is not an integer.".format(value))

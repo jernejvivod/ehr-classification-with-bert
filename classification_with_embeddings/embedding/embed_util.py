@@ -7,7 +7,9 @@ from classification_with_embeddings import LABEL_WORD_PREFIX
 from classification_with_embeddings.embedding import logger
 
 
-def get_aggregate_embedding(sentence_words: List[str], word_to_embedding: Dict[str, np.ndarray[1, ...]], method='average') -> np.ndarray[1, ...]:
+def get_aggregate_embedding(sentence_words: List[str],
+                            word_to_embedding: Dict[str, np.ndarray],
+                            method='average') -> np.ndarray:
     """Get embedding for a new set of features (new document).
 
     :param sentence_words: features in fastText format
@@ -23,7 +25,9 @@ def get_aggregate_embedding(sentence_words: List[str], word_to_embedding: Dict[s
         raise ValueError('method {} not supported'.format(method))
 
 
-def get_aggregate_embeddings(sentences: List[List[str]], word_to_embedding: Dict[str, np.ndarray[1, ...]], method='average') -> np.ndarray[..., ...]:
+def get_aggregate_embeddings(sentences: List[List[str]],
+                             word_to_embedding: Dict[str, np.ndarray],
+                             method='average') -> np.ndarray:
     """Get embedding for a new set of features (multiple documents).
 
     :param sentences: features in fastText format for documents
@@ -35,7 +39,7 @@ def get_aggregate_embeddings(sentences: List[List[str]], word_to_embedding: Dict
     return np.vstack([get_aggregate_embedding(s, word_to_embedding, method) for s in sentences])
 
 
-def _get_aggregate_embedding_average(words: list[str], word_to_embedding: dict) -> np.ndarray[1, ...]:
+def _get_aggregate_embedding_average(words: List[str], word_to_embedding: dict) -> np.ndarray:
     """Get aggregate embedding by averaging constituent word embeddings.
 
     :param words: list of constituent words
@@ -54,7 +58,7 @@ def _get_aggregate_embedding_average(words: list[str], word_to_embedding: dict) 
     return aggregate_emb
 
 
-def get_word_to_embedding(path_to_embeddings: str, binary: bool = False) -> Dict[str, np.ndarray[1, ...]]:
+def get_word_to_embedding(path_to_embeddings: str, binary: bool = False) -> Dict[str, np.ndarray]:
     """Get dictionary mapping words to their embeddings.
 
     :param path_to_embeddings: path embeddings

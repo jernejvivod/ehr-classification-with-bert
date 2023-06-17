@@ -12,7 +12,9 @@ class StarSpaceClassifier(AClassifier):
 
     def __init__(self, word_to_embedding: dict):
         self.word_to_embedding = word_to_embedding
-        label_embeddings = [(key, word_to_embedding[key]) for key in word_to_embedding.keys() if LABEL_WORD_PREFIX in key]
+        label_embeddings = [
+            (key, word_to_embedding[key]) for key in word_to_embedding.keys() if LABEL_WORD_PREFIX in key
+        ]
         self.index_to_label_key = [e[0] for e in label_embeddings]
         self.label_emb_mat = np.transpose([e[1] for e in label_embeddings])
 

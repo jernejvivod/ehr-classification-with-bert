@@ -7,7 +7,12 @@ from classification_with_embeddings import LABEL_WORD_PREFIX
 from classification_with_embeddings.evaluation import logger
 
 
-def get_train_test_split(data_path: str, output_dir: str, train_size: float = 0.8, stratify: bool = True, train_suffix: str = 'train', test_suffix: str = 'test') -> Tuple[str, str]:
+def get_train_test_split(data_path: str,
+                         output_dir: str,
+                         train_size: float = 0.8,
+                         stratify: bool = True,
+                         train_suffix: str = 'train',
+                         test_suffix: str = 'test') -> Tuple[str, str]:
     """Get files corresponding to a train-test split of the data in the specified file in fastText format.
 
     :param data_path: path to data containing the samples in fastText format
@@ -21,7 +26,14 @@ def get_train_test_split(data_path: str, output_dir: str, train_size: float = 0.
     logger.info('Performing train-test split with with train_size={0}.'.format(train_size))
 
     labels = _read_labels(data_path)
-    idxs_train, idxs_test = model_selection.train_test_split(range(len(labels)), train_size=train_size, stratify=labels if stratify else None, shuffle=True)
+
+    idxs_train, idxs_test = model_selection.train_test_split(
+        range(len(labels)),
+        train_size=train_size,
+        stratify=labels if stratify else None,
+        shuffle=True
+    )
+
     return _write_train_and_test_data(data_path, output_dir, idxs_train, idxs_test, train_suffix, test_suffix)
 
 
@@ -35,7 +47,12 @@ def _read_labels(data_path: str):
     return labels
 
 
-def _write_train_and_test_data(data_path: str, output_dir: str, idxs_train: List[int], idxs_test: List[int], train_suffix: str, test_suffix: str) -> Tuple[str, str]:
+def _write_train_and_test_data(data_path: str,
+                               output_dir: str,
+                               idxs_train: List[int],
+                               idxs_test: List[int],
+                               train_suffix: str,
+                               test_suffix: str) -> Tuple[str, str]:
     """Write training and tests data to corresponding files and return the paths as a tuple"""
 
     data_file_path = pathlib.Path(data_path)

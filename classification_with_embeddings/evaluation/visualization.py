@@ -1,4 +1,5 @@
 import os
+from typing import Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,7 +22,12 @@ def write_classification_report(cr: str, dir_path: str, method: str) -> None:
         f.write(cr)
 
 
-def plot_confusion_matrix(predictions: list | np.ndarray[1, ...], y_test: list, labels: list, class_names: list, plot_path: str, method: str) -> None:
+def plot_confusion_matrix(predictions: Union[list, np.ndarray],
+                          y_test: list,
+                          labels: list,
+                          class_names: list,
+                          plot_path: str,
+                          method: str) -> None:
     """Plot confusion matrix.
 
     :param predictions: predictions of the classifier
@@ -53,7 +59,7 @@ def plot_confusion_matrix(predictions: list | np.ndarray[1, ...], y_test: list, 
     plt.close()
 
 
-def plot_roc(scores: np.ndarray[..., 2], y_test: list, pos_label, plot_path: str, method: str):
+def plot_roc(scores: np.ndarray, y_test: list, pos_label, plot_path: str, method: str):
     """Plot ROC curve and compute the AUC metric.
 
     :param scores: scores for classes (probabilities)
@@ -67,7 +73,7 @@ def plot_roc(scores: np.ndarray[..., 2], y_test: list, pos_label, plot_path: str
     logger.info('Saving ROC plot to {0}'.format(output_file_path))
 
     # get false positive rates, true positive rates and thresholds
-    fpr, tpr, thresholds = metrics.roc_curve(y_test, scores[:, 1], pos_label=pos_label)
+    fpr, tpr, _ = metrics.roc_curve(y_test, scores[:, 1], pos_label=pos_label)
 
     # compute AUC
     roc_auc = metrics.roc_auc_score(y_test, scores[:, 1])
@@ -76,7 +82,7 @@ def plot_roc(scores: np.ndarray[..., 2], y_test: list, pos_label, plot_path: str
     plt.figure()
     lw = 2
     plt.plot(fpr, tpr, color='darkorange',
-             lw=lw, label='ROC curve (area = {0:4f})'.format(roc_auc))
+             lw=lw, label='ROC curve (area = {0:2f})'.format(roc_auc))
     plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])

@@ -25,8 +25,10 @@ class ADocEmbedder(ABC, BaseEstimator, TransformerMixin):
     def transform(self, test_sentences: List[List[str]]):
         return get_aggregate_embeddings(test_sentences, self._word_to_embedding, method='average')
 
+    # TODO implement __call__ (should have the same functionality as transform)
+
     @staticmethod
-    def factory(method: str | List[str] = 'word2vec'):
+    def factory(method: Union[str, List[str]] = 'word2vec'):
         if isinstance(method, str):
             if method == 'word2vec':
                 from classification_with_embeddings.evaluation.embedders.word2vec_doc_embedder import Word2VecDocEmbedder
