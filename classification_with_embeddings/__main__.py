@@ -139,13 +139,13 @@ def _add_subparser_for_get_train_test_split(subparsers):
 
 def _add_subparser_for_evaluate_embeddings_model(subparsers):
     evaluate_embeddings_model_parser = subparsers.add_parser(Tasks.EVALUATE_EMBEDDINGS_MODEL.value)
-    evaluate_embeddings_model_parser.add_argument('--method', type=str, nargs='+', required=True,
+    evaluate_embeddings_model_parser.add_argument('--method', type=str, nargs='+', required=True,  # TODO check - will always produce a list!
                                                   choices=[v.value for v in EntityEmbeddingMethod],
                                                   help='Entity embedding method to evaluate_embeddings_model')
-    evaluate_embeddings_model_parser.add_argument('--train-data-path', type=file_path, nargs='+', required=True,
+    evaluate_embeddings_model_parser.add_argument('--train-data-path', type=file_path, nargs='+', required=True,  # TODO check - will always produce a list!
                                                   help='Path to file containing the training data in fastText format'
                                                        ' (for training internal classifiers)')
-    evaluate_embeddings_model_parser.add_argument('--test-data-path', type=file_path, nargs='+', required=True,
+    evaluate_embeddings_model_parser.add_argument('--test-data-path', type=file_path, nargs='+', required=True, # TODO check - will always produce a list!
                                                   help='Path to file containing the test data in fastText format')
     evaluate_embeddings_model_parser.add_argument('--validation-size', type=proportion_float, default=0.3,
                                                   help='Proportion of the dataset to use for hyperparameter tuning')

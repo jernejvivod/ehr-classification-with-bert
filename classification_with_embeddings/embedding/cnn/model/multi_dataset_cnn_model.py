@@ -61,7 +61,10 @@ class CompositeCnnTextClassificationModel(nn.Module):
 
     def forward(self, x: Tuple[List[List[str]]]):
         # get feature vector
-        feature_vector = torch.cat([self.feature_extractors[i](features) for i, features in enumerate(x)], dim=1)
+        feature_vector = torch.cat(
+            [self.feature_extractors[i](list(map(lambda e: e[i], x))) for i in range(len(self.feature_extractors))],
+            dim=1
+        )
 
         # perform classification
         return self.classifier(feature_vector)
