@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import torch
 import torch.nn as nn
@@ -6,9 +6,10 @@ import torch.nn as nn
 from classification_with_embeddings.embedding.cnn.model.cnn_feature_extractor_model import CnnTextFeatureExtractionModel
 
 
-class CnnTextClassificationModel(nn.Module):
+class CompositeCnnTextClassificationModel(nn.Module):
     def __init__(
             self,
+            n_datasets: int,
             word_to_embedding: Dict[str, torch.tensor],
             n_labels: int,
             max_filter_s: int = 4,
@@ -17,10 +18,11 @@ class CnnTextClassificationModel(nn.Module):
             n_filter_channels=2,
             hidden_size=32
     ):
-        """CNN-based document classification model. The model slides filters from filter banks of increasing heights.
-        The maximum value from each feature map of each filter bank is taken, and the values are concatenated into a
-        feature vector. Dense layers are then used to perform the document classification.
+        """CnnTextClassificationModel that supports multiple related datasets (the rows with the same indices correspond
+        to the same entities). A feature vector is constructed for each document. The feature vectors are concatenated
+        and Dense layers are then used to perform the classification.
 
+        :param n_datasets: number of composite datasets that will be used
         :param word_to_embedding: mapping of words to their embeddings
         :param n_labels: number of unique labels
         :param max_filter_s: maximum filter bank height
@@ -31,13 +33,15 @@ class CnnTextClassificationModel(nn.Module):
         """
         super().__init__()
 
-        self.feature_extractor = CnnTextFeatureExtractionModel(
-            word_to_embedding=word_to_embedding,
-            max_filter_s=max_filter_s,
-            min_filter_s=min_filter_s,
-            filter_s_step=filter_s_step,
-            n_filter_channels=n_filter_channels,
-        )
+        self.feature_extractors = nn.ModuleList([
+            CnnTextFeatureExtractionModel(
+                word_to_embedding=word_to_embedding,
+                max_filter_s=max_filter_s,
+                min_filter_s=min_filter_s,
+                filter_s_step=filter_s_step,
+                n_filter_channels=n_filter_channels,
+            ) for _ in range(n_datasets)
+        ])
 
         self.relu = nn.ReLU(inplace=True)
 
@@ -45,7 +49,7 @@ class CnnTextClassificationModel(nn.Module):
         n_filter_banks = ((max_filter_s - min_filter_s) + 1) // filter_s_step
         self.classifier = nn.Sequential(
             nn.Dropout(p=0.5),
-            nn.Linear(n_filter_channels * n_filter_banks, hidden_size),
+            nn.Linear(n_filter_channels * n_filter_banks * n_datasets, hidden_size),
             self.relu,
 
             nn.Dropout(p=0.5),
@@ -55,12 +59,13 @@ class CnnTextClassificationModel(nn.Module):
             nn.Linear(hidden_size, n_labels)
         )
 
-    def forward(self, x: List[List[str]]):
+    def forward(self, x: Tuple[List[List[str]]]):
         # get feature vector
-        feature_vector = self.feature_extractor(x)
+        feature_vector = torch.cat([self.feature_extractors[i](features) for i, features in enumerate(x)], dim=1)
 
         # perform classification
         return self.classifier(feature_vector)
 
     def set_device(self, device):
-        self.feature_extractor.set_device(device)
+        for fe in self.feature_extractors:
+            fe.set_device(device)

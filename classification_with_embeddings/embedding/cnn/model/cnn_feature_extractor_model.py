@@ -49,7 +49,7 @@ class CnnTextFeatureExtractionModel(nn.Module):
         length_longest_document = self._max_filter_s  # should pad to at least maximum filter bank height
         for example in x:
             emb_input_nxt = torch.stack(
-                [self._word_to_embedding.get(w, torch.zeros(self._embedding_l)) for w in example])
+                [self._word_to_embedding.get(w, torch.zeros(self._embedding_l)).to(self.device) for w in example])
             if emb_input_nxt.shape[0] > length_longest_document:
                 length_longest_document = emb_input_nxt.shape[0]
             emb_inputs.append(emb_input_nxt)
@@ -75,3 +75,6 @@ class CnnTextFeatureExtractionModel(nn.Module):
 
         # concatenate the vectors of maximum feature map values into a feature vector
         return torch.cat(one_max_vectors, dim=1)
+
+    def set_device(self, device):
+        self.device = device

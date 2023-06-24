@@ -21,8 +21,8 @@ def evaluate_embeddings_model(clf: AClassifier,
 
     :param clf: AClassifier instance that outputs the predicted probabilities or label for a sample
     (document in FastText format)
-    :param method: embedding method used
-    :param test_data_path: path to test data in fastText format
+    :param method: embedding method(s) used
+    :param test_data_path: path(s) to test data in fastText format
     :param results_path: path to directory in which to store the results
     """
 

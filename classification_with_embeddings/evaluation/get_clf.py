@@ -51,8 +51,8 @@ def get_clf_with_internal_clf_gs(train_data_path: Union[str, Iterable[str]],
                                  cv: int = 5) -> AClassifier:
     """get internal classifier-based classifier (used within pipeline) with parameters tuned using grid-search.
 
-    :param train_data_path: path to file containing the training data in fastText format
-    :param validation_data_path: path to file containing the validation data in fastText format
+    :param train_data_path: path to file(s) containing the training data in fastText format
+    :param validation_data_path: path to file(s) containing the validation data in fastText format
     :param param_grid: parameter grid to use
     :param embedding_method: embedding method to use ('word2vec', 'fasttext', 'doc2vec', or 'starspace')
     :param clf_internal: internal classifier to use

@@ -1,5 +1,5 @@
 import os.path
-from typing import Optional
+from typing import Optional, Union, Iterable
 
 import torch
 import torch.nn as nn
@@ -9,16 +9,18 @@ from tqdm import tqdm
 
 from classification_with_embeddings import torch_device
 from classification_with_embeddings.embedding import logger
-from classification_with_embeddings.embedding.cnn.dataset import FastTextFormatDataset
+from classification_with_embeddings.embedding.cnn.dataset import FastTextFormatDataset, FastTextFormatCompositeDataset
 from classification_with_embeddings.embedding.cnn.model.cnn_model import CnnTextClassificationModel
+from classification_with_embeddings.embedding.cnn.model.multi_dataset_cnn_model import \
+    CompositeCnnTextClassificationModel
 from classification_with_embeddings.embedding.embed_util import get_word_to_embedding
 
 
 def train_cnn_model(
-        train_data_path: str,
+        train_data_path: Union[str, Iterable[str]],
         word_embeddings_path: str,
         n_labels: int,
-        val_data_path: Optional[str] = None,
+        val_data_path: Optional[Union[str, Iterable[str]]] = None,
         output_dir: str = '.',
         batch_size=32,
         n_epochs=3,
@@ -31,10 +33,10 @@ def train_cnn_model(
 ):
     """Train CNN-based document classification model.
 
-    :param train_data_path: Path to file containing the training data in FastText format
+    :param train_data_path: Path to file(s) containing the training data in FastText format
     :param word_embeddings_path: Path to file containing the word embeddings in TSV format
     :param n_labels: Number of unique labels in the dataset
-    :param val_data_path: Path to file containing the validation data in FastText format
+    :param val_data_path: Path to file(s) containing the validation data in FastText format
     :param output_dir: Path to directory in which to save the trained model
     :param batch_size: Batch size to use during training
     :param n_epochs: Number of epochs to perform
@@ -49,18 +51,29 @@ def train_cnn_model(
     logger.info('Using device: %s', torch_device)
 
     # initialize mapping of word to their embeddings
-    word_to_embedding = {k: torch.tensor(v).float() for k, v in
+    word_to_embedding = {k: torch.tensor(v).float().to(torch_device) for k, v in
                          get_word_to_embedding(word_embeddings_path, False).items()}
 
     # initialize model
+    if not (isinstance(train_data_path, str) or isinstance(train_data_path, list)):
+        raise ValueError('Specified training data path(s) should be a str or a list.')
     model = CnnTextClassificationModel(
-        word_to_embedding,
-        n_labels,
-        max_filter_s,
-        min_filter_s,
-        filter_s_step,
-        n_filter_channels,
-        hidden_size
+        word_to_embedding=word_to_embedding,
+        n_labels=n_labels,
+        max_filter_s=max_filter_s,
+        min_filter_s=min_filter_s,
+        filter_s_step=filter_s_step,
+        n_filter_channels=n_filter_channels,
+        hidden_size=hidden_size
+    ).to(torch_device) if isinstance(train_data_path, str) else CompositeCnnTextClassificationModel(
+        n_datasets=len(train_data_path),
+        word_to_embedding=word_to_embedding,
+        n_labels=n_labels,
+        max_filter_s=max_filter_s,
+        min_filter_s=min_filter_s,
+        filter_s_step=filter_s_step,
+        n_filter_channels=n_filter_channels,
+        hidden_size=hidden_size
     ).to(torch_device)
 
     # initialize loss function, optimizer and scheduler
@@ -69,15 +82,11 @@ def train_cnn_model(
     scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
     # initialize datasets and data loaders
-    train_dataset = FastTextFormatDataset(train_data_path)
-    train_data_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size,
-                                   collate_fn=FastTextFormatDataset.collate)
+    train_data_loader = get_dataloader(train_data_path, batch_size)
 
     val_data_loader = None
     if val_data_path:
-        val_dataset = FastTextFormatDataset(val_data_path)
-        val_data_loader = DataLoader(val_dataset, shuffle=True, batch_size=batch_size,
-                                     collate_fn=FastTextFormatDataset.collate)
+        val_data_loader = get_dataloader(val_data_path, batch_size)
 
     # initialize progress bar
     num_training_steps = n_epochs * len(train_data_loader)
@@ -116,7 +125,7 @@ def train_cnn_model(
     torch.save(model, saved_model_path)
 
 
-def validate_model(model, val_data_loader):
+def validate_model(model: nn.Module, val_data_loader: DataLoader):
     print('\nPerforming validation on the training set.')
 
     # model will be evaluated
@@ -154,3 +163,15 @@ def validate_model(model, val_data_loader):
 
     # model will continue to be trained
     model.train()
+
+
+def get_dataloader(train_data_path: Union[str, Iterable[str]], batch_size: int):
+    if isinstance(train_data_path, str):
+        dataset = FastTextFormatDataset(train_data_path)
+        return DataLoader(dataset, shuffle=True, batch_size=batch_size, collate_fn=FastTextFormatDataset.collate)
+    elif isinstance(train_data_path, list):
+        dataset = FastTextFormatCompositeDataset(train_data_path)
+        return DataLoader(dataset, shuffle=True, batch_size=batch_size, collate_fn=FastTextFormatCompositeDataset.collate)
+    else:
+        raise ValueError('Specified training data path(s) should be a str or a list.')
+

@@ -95,13 +95,13 @@ def _add_subparser_for_get_entity_embeddings(subparsers):
 
 def _add_subparser_for_train_cnn_model(subparsers):
     train_cnn_model_parser = subparsers.add_parser(Tasks.TRAIN_CNN_MODEL.value)
-    train_cnn_model_parser.add_argument('--train-data-path', type=file_path, required=True,
+    train_cnn_model_parser.add_argument('--train-data-path', type=file_path, required=True, nargs='+',
                                         help='Path to file containing the training data in FastText format')
     train_cnn_model_parser.add_argument('--word-embeddings-path', type=file_path, required=True,
                                         help='Path to file containing the word embeddings in TSV format')
     train_cnn_model_parser.add_argument('--n-labels', type=positive_int, required=True,
                                         help='Number of unique labels in the dataset')
-    train_cnn_model_parser.add_argument('--val-data-path', type=file_path, default=None,
+    train_cnn_model_parser.add_argument('--val-data-path', type=file_path, default=None, nargs='+',
                                         help='Path to file containing the validation data in FastText format.'
                                              ' No validation will be performed during training if not specified.')
     train_cnn_model_parser.add_argument('--output-dir', type=dir_path, default='.',
