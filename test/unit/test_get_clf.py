@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 from gensim.models import Doc2Vec
 
+from classification_with_embeddings.evaluation import get_clf
 from classification_with_embeddings.embedding.embed_util import get_word_to_embedding
 from classification_with_embeddings.evaluation.get_clf import get_clf_with_internal_clf, get_clf_starspace, get_clf_with_internal_clf_doc2vec, get_clf_with_internal_clf_gs
 from test.test_utils import get_relative_path
@@ -54,6 +55,23 @@ class TestGetClf(unittest.TestCase):
         word_to_embedding = get_word_to_embedding(get_relative_path(__file__, '../mock_data/mock_starspace_model.tsv'))
         clf = get_clf_starspace(word_to_embedding)
         self._assert_pred(clf, self.test_samples)
+
+    def test_process_param_grid_for_set_params(self):
+        param_grid = {
+            'e1__param_1': [1, 2, 3],
+            'e1__param_2': 'test',
+            'e2__param_3': ['ab', 'cd', 'ef']
+        }
+
+        param_grid_expected = {
+            'e1__param_1': 1,
+            'e1__param_2': 'test',
+            'e2__param_3': 'ab'
+        }
+
+        param_grid_proc = get_clf._process_param_grid_for_set_params(param_grid)
+
+        self.assertEqual(param_grid_expected, param_grid_proc)
 
     def _assert_pred(self, clf, test_samples):
         self.assertIsNotNone(clf)

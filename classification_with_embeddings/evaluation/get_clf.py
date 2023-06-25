@@ -1,4 +1,4 @@
-from typing import Callable, List, Iterable, Union, Dict
+from typing import Callable, List, Iterable, Union, Dict, Any
 
 import numpy as np
 from gensim.models import Doc2Vec
@@ -49,6 +49,7 @@ def get_clf_with_internal_clf_gs(train_data_path: Union[str, Iterable[str]],
                                  embedding_method: Union[str, List[str]] = 'word2vec',
                                  clf_internal=RandomForestClassifier,
                                  cv: int = 3,
+                                 no_grid_search: bool = False,
                                  **a_doc_embedder_kwargs) -> AClassifier:
     """get internal classifier-based classifier (used within pipeline) with parameters tuned using grid-search.
 
@@ -58,34 +59,44 @@ def get_clf_with_internal_clf_gs(train_data_path: Union[str, Iterable[str]],
     :param embedding_method: embedding method to use ('word2vec', 'fasttext', 'doc2vec', or 'starspace')
     :param clf_internal: internal classifier to use
     :param cv: number of folds to use when doing cross-validation
+    :param no_grid_search: if True, the first parameter values specified in the param_grid will be used without
+    performing grid search
     :param a_doc_embedder_kwargs: additional keyword arguments to pass to the ADocEmbedder instance constructor
     :return: initialized PipelineClassifier instance
     """
 
     # define pipeline
-    clf_pipeline = Pipeline([('embedding', ADocEmbedder.factory(embedding_method, **a_doc_embedder_kwargs)), ('scaling', RobustScaler()), ('classification', clf_internal())])
+    clf_pipeline = Pipeline([
+        ('embedding', ADocEmbedder.factory(embedding_method, **a_doc_embedder_kwargs)),
+        ('scaling', RobustScaler()),
+        ('classification', clf_internal())
+    ])
 
-    # run grid search
-    grid_search = GridSearchCV(
-        estimator=clf_pipeline,
-        param_grid=param_grid if param_grid is not None else dict(),
-        cv=cv,
-        scoring='accuracy',
-        n_jobs=-1,
-        verbose=2
-    )
+    if not no_grid_search:
+        # run grid search
+        grid_search = GridSearchCV(
+            estimator=clf_pipeline,
+            param_grid=param_grid if param_grid is not None else dict(),
+            cv=cv,
+            scoring='accuracy',
+            n_jobs=-1,
+            verbose=2
+        )
 
-    validation_sentences, validation_labels = _fasttext_data_to_x_y(validation_data_path) if \
-        isinstance(validation_data_path, str) else _fasttext_data_to_x_y_multiple(validation_data_path)
+        validation_sentences, validation_labels = _fasttext_data_to_x_y(validation_data_path) if \
+            isinstance(validation_data_path, str) else _fasttext_data_to_x_y_multiple(validation_data_path)
 
-    logger.info('Performing grid-search.')
-    grid_search.fit(validation_sentences, validation_labels)
+        logger.info('Performing grid-search.')
+        grid_search.fit(validation_sentences, validation_labels)
+        clf = grid_search.best_estimator_
+    else:
+        clf = clf_pipeline
+        clf.set_params(**_process_param_grid_for_set_params(param_grid))
 
-    # train best estimator
     train_sentences, train_labels = _fasttext_data_to_x_y(train_data_path) if \
         isinstance(train_data_path, str) else _fasttext_data_to_x_y_multiple(train_data_path)
-    logger.info('Training best model.')
-    clf = grid_search.best_estimator_.fit(train_sentences, train_labels)
+    logger.info('Training selected model.')
+    clf.fit(train_sentences, train_labels)
 
     # return PipelineClassifier instance initialized with best estimator
     return PipelineClassifier(clf)
@@ -165,3 +176,18 @@ def _init_clf(get_aggr_embedding: Callable[[List[str]], np.ndarray],
         clf_internal = clf_internal(**clf_internal_params).fit(x_train, target)
 
     return get_clf(clf_internal)
+
+
+def _process_param_grid_for_set_params(param_grid: Dict[str, Any]):
+    """Process parameter grid for grid search so that the first value for each parameter is used for each parameter.
+
+    :param param_grid: parameter grid
+    """
+
+    res = dict()
+    for k, v in param_grid.items():
+        if isinstance(v, list):
+            res[k] = v[0]
+        else:
+            res[k] = v
+    return res

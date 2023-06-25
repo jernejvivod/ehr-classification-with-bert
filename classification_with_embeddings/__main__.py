@@ -160,6 +160,9 @@ def _add_subparser_for_evaluate_embeddings_model(subparsers):
                                                   help='Path to parameter grid in JSON format')
     evaluate_embeddings_model_parser.add_argument('--cv', type=int, default=5,
                                                   help='Number of folds to use when doing cross-validation')
+    evaluate_embeddings_model_parser.add_argument('--no-grid-search', action='store_true',
+                                                  help='If set, the first parameter values specified in the param_grid'
+                                                       ' will be used without performing grid search')
     evaluate_embeddings_model_parser.add_argument('--embeddings-path', type=file_path,
                                                   help='Path to stored feature embeddings')
     evaluate_embeddings_model_parser.add_argument('--doc2vec-model-path', type=file_path,
@@ -340,6 +343,7 @@ def _get_clf_gs(parsed_args: dict) -> AClassifier:
         embedding_method=method,
         clf_internal=clf_internal,
         cv=parsed_args['cv'],
+        no_grid_search=parsed_args['no_grid_search'],
         embeddings_path=parsed_args['embeddings_path'],
         binary=parsed_args['binary'],
         starspace_path=parsed_args['starspace_path']
