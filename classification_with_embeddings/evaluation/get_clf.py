@@ -48,7 +48,8 @@ def get_clf_with_internal_clf_gs(train_data_path: Union[str, Iterable[str]],
                                  param_grid: dict,
                                  embedding_method: Union[str, List[str]] = 'word2vec',
                                  clf_internal=RandomForestClassifier,
-                                 cv: int = 5) -> AClassifier:
+                                 cv: int = 3,
+                                 **a_doc_embedder_kwargs) -> AClassifier:
     """get internal classifier-based classifier (used within pipeline) with parameters tuned using grid-search.
 
     :param train_data_path: path to file(s) containing the training data in fastText format
@@ -57,11 +58,12 @@ def get_clf_with_internal_clf_gs(train_data_path: Union[str, Iterable[str]],
     :param embedding_method: embedding method to use ('word2vec', 'fasttext', 'doc2vec', or 'starspace')
     :param clf_internal: internal classifier to use
     :param cv: number of folds to use when doing cross-validation
+    :param a_doc_embedder_kwargs: additional keyword arguments to pass to the ADocEmbedder instance constructor
     :return: initialized PipelineClassifier instance
     """
 
     # define pipeline
-    clf_pipeline = Pipeline([('embedding', ADocEmbedder.factory(embedding_method)), ('scaling', RobustScaler()), ('classification', clf_internal())])
+    clf_pipeline = Pipeline([('embedding', ADocEmbedder.factory(embedding_method, **a_doc_embedder_kwargs)), ('scaling', RobustScaler()), ('classification', clf_internal())])
 
     # run grid search
     grid_search = GridSearchCV(
@@ -69,7 +71,8 @@ def get_clf_with_internal_clf_gs(train_data_path: Union[str, Iterable[str]],
         param_grid=param_grid if param_grid is not None else dict(),
         cv=cv,
         scoring='accuracy',
-        n_jobs=-1
+        n_jobs=-1,
+        verbose=2
     )
 
     validation_sentences, validation_labels = _fasttext_data_to_x_y(validation_data_path) if \

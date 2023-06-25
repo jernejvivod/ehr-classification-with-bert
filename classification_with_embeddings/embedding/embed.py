@@ -97,19 +97,20 @@ def get_doc2vec_embeddings(train_data_path: str, output_dir: str, doc2vec_args: 
     return out_path
 
 
-def get_doc_embedder_instance(method: str, train_data_path: str, method_args: str = "") -> ADocEmbedder:
+def get_doc_embedder_instance(method: str, train_data_path: str, method_args: str = "", **a_doc_embedder_kwargs) -> ADocEmbedder:
     """get ADocEmbedder instance trained on specified training file
 
     :param method: embedding method to use ('word2vec', 'fasttext', 'doc2vec', or 'starspace')
     :param train_data_path: path to training data in fastText format
     :param method_args: arguments passed to embedding implementation
+    :param a_doc_embedder_kwargs: additional keyword arguments to pass to the ADocEmbedder instance constructor
     """
 
     with SentenceIteratorFastTextFormat(train_data_path) as sent_it:
         model_params = _parse_params_or_get_default(method_args, {})
 
         # get model
-        doc_embedder = ADocEmbedder.factory(method)
+        doc_embedder = ADocEmbedder.factory(method, **a_doc_embedder_kwargs)
         doc_embedder.method_kwargs = model_params
         doc_embedder.fit(sent_it, None)
 

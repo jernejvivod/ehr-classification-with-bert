@@ -166,6 +166,8 @@ def _add_subparser_for_evaluate_embeddings_model(subparsers):
                                                   help='Path to stored Doc2Vec model')
     evaluate_embeddings_model_parser.add_argument('--binary', action='store_true',
                                                   help='Embeddings are stored in binary format')
+    evaluate_embeddings_model_parser.add_argument('--starspace-path', type=file_path,
+                                                  help='Path to StarSpace executable')
     evaluate_embeddings_model_parser.add_argument('--results-path', type=dir_path, default='.',
                                                   help='Path to directory in which to save the results')
     evaluate_embeddings_model_parser.add_argument('--internal-clf', type=str,
@@ -337,7 +339,10 @@ def _get_clf_gs(parsed_args: dict) -> AClassifier:
         param_grid=param_grid,
         embedding_method=method,
         clf_internal=clf_internal,
-        cv=parsed_args['cv']
+        cv=parsed_args['cv'],
+        embeddings_path=parsed_args['embeddings_path'],
+        binary=parsed_args['binary'],
+        starspace_path=parsed_args['starspace_path']
     )
 
     return clf

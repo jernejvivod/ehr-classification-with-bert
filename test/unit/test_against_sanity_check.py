@@ -43,7 +43,17 @@ class TestEmbed(unittest.TestCase):
         self._run_test_classification_gs_sanity_check(embedding_method='word2vec', param_grid=dict())
         self._run_test_classification_gs_sanity_check(embedding_method='fasttext', param_grid=dict())
         self._run_test_classification_gs_sanity_check(embedding_method='doc2vec', param_grid=dict())
-        # TODO missing embedding methods
+        self._run_test_classification_gs_sanity_check(
+            embedding_method='pre-trained-from-file',
+            param_grid=dict(),
+            path_to_embedding=get_relative_path(__file__, '../../embedding_methods/BioWordVec/bio_embedding_extrinsic'),
+            binary=True
+        )
+        self._run_test_classification_gs_sanity_check(
+            embedding_method='starspace',
+            param_grid=dict(),
+            starspace_path=get_relative_path(__file__, self.STARSPACE_PATH),
+        )
         self._remove_gs_train_validation_split_data()
 
     def test_classification_cnn_sanity_check(self):
@@ -104,14 +114,16 @@ class TestEmbed(unittest.TestCase):
 
     def _run_test_classification_gs_sanity_check(self, embedding_method: str,
                                                  param_grid: dict,
-                                                 clf_internal=RandomForestClassifier):
+                                                 clf_internal=RandomForestClassifier,
+                                                 **a_doc_embedder_kwargs):
 
         clf = get_clf_with_internal_clf_gs(
             self.TRAINING_SET_PATH_GS,
             self.VALIDATION_SET_PATH_GS,
             clf_internal=clf_internal,
             param_grid=param_grid,
-            embedding_method=embedding_method
+            embedding_method=embedding_method,
+            **a_doc_embedder_kwargs
         )
 
         evaluate_embeddings_model(clf, embedding_method, get_relative_path(__file__, self.TEST_SET_PATH), self.OUT_PATH)

@@ -6,7 +6,7 @@ from classification_with_embeddings.evaluation.embedders.a_doc_embedder import A
 
 
 class Word2VecDocEmbedder(ADocEmbedder):
-    def get_word_to_embedding(self, train_sentences: Union[List[List[str]], Iterator]):
+    def get_word_to_embedding(self, train_sentences: Union[List[List[str]], Iterator], y: list):
         word2vec_model = Word2Vec(
             sentences=train_sentences,
             vector_size=self.vector_size,

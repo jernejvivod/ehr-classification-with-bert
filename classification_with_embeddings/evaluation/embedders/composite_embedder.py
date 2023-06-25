@@ -6,14 +6,14 @@ from classification_with_embeddings.evaluation.embedders.a_doc_embedder import A
 
 
 class CompositeEmbedder(ADocEmbedder):
-    def __init__(self, embedders: List[ADocEmbedder], vector_size: int = 100):
-        super().__init__(vector_size=vector_size)
+    def __init__(self, embedders: List[ADocEmbedder], vector_size: int = 100, **kwargs):
+        super().__init__(vector_size=vector_size, **kwargs)
         self.embedders = embedders
 
-    def get_word_to_embedding(self, train_sentences: List[List[str]]):
+    def get_word_to_embedding(self, train_sentences: List[List[str]], y: list):
         raise NotImplementedError('Method not supported.')
 
-    def fit(self, train_sentences: List[List[List[str]]], y):
+    def fit(self, train_sentences: List[List[List[str]]], y: list):
         for train_sentences_sect, embedder in zip(CompositeEmbedder._transform_sentence_lists_to_list_of_lists_of_sentences(train_sentences), self.embedders):
             embedder.fit(train_sentences_sect, y)
         return self

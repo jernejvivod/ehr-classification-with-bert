@@ -8,14 +8,14 @@ from classification_with_embeddings.evaluation.embedders.a_doc_embedder import A
 
 
 class Doc2VecDocEmbedder(ADocEmbedder):
-    def get_word_to_embedding(self, train_sentences: Union[List[List[str]], Iterator]):
-        raise NotImplementedError('Method not supported.')
-
-    def __init__(self, vector_size: int = 100):
-        super().__init__(vector_size=vector_size)
+    def __init__(self, vector_size: int = 100, **kwargs):
+        super().__init__(vector_size=vector_size, **kwargs)
         self.model = None
 
-    def fit(self, train_sentences: Union[List[List[str]], Iterator], y):
+    def get_word_to_embedding(self, train_sentences: Union[List[List[str]], Iterator], y: list):
+        raise NotImplementedError('Method not supported.')
+
+    def fit(self, train_sentences: Union[List[List[str]], Iterator], y: list):
         tagged_data = [TaggedDocument(words=s, tags=[str(i)]) for i, s in enumerate(train_sentences)]
         self.model = Doc2Vec(tagged_data, vector_size=self.vector_size, **self.method_kwargs)
         return self
