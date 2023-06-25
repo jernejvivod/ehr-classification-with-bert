@@ -1,5 +1,5 @@
 import os.path
-from typing import Optional, List
+from typing import Optional, List, Union
 
 import torch
 import torch.nn as nn
@@ -17,10 +17,10 @@ from classification_with_embeddings.embedding.embed_util import get_word_to_embe
 
 
 def train_cnn_model(
-        train_data_path: List[str],
+        train_data_path: Union[str, List[str]],
         word_embeddings_path: str,
         n_labels: int,
-        val_data_path: Optional[List[str]] = None,
+        val_data_path: Optional[Union[str, List[str]]] = None,
         output_dir: str = '.',
         batch_size=32,
         n_epochs=3,
@@ -55,6 +55,8 @@ def train_cnn_model(
                          get_word_to_embedding(word_embeddings_path, False).items()}
 
     # initialize model
+    if not (isinstance(train_data_path, str) or isinstance(train_data_path, list)):
+        raise ValueError('Specified training data path(s) should be a str or a list.')
     model = CnnTextClassificationModel(
         word_to_embedding=word_to_embedding,
         n_labels=n_labels,
@@ -63,7 +65,7 @@ def train_cnn_model(
         filter_s_step=filter_s_step,
         n_filter_channels=n_filter_channels,
         hidden_size=hidden_size
-    ).to(torch_device) if len(train_data_path) == 1 else CompositeCnnTextClassificationModel(
+    ).to(torch_device) if isinstance(train_data_path, str) else CompositeCnnTextClassificationModel(
         n_datasets=len(train_data_path),
         word_to_embedding=word_to_embedding,
         n_labels=n_labels,
@@ -163,10 +165,13 @@ def validate_model(model: nn.Module, val_data_loader: DataLoader):
     model.train()
 
 
-def get_dataloader(train_data_path: List[str], batch_size: int):
-    if len(train_data_path) == 1:
-        dataset = FastTextFormatDataset(train_data_path[0])
+def get_dataloader(train_data_path: Union[str, List[str]], batch_size: int):
+    if isinstance(train_data_path, str):
+        dataset = FastTextFormatDataset(train_data_path)
         return DataLoader(dataset, shuffle=True, batch_size=batch_size, collate_fn=FastTextFormatDataset.collate)
-    else:
+    elif isinstance(train_data_path, list):
         dataset = FastTextFormatCompositeDataset(train_data_path)
         return DataLoader(dataset, shuffle=True, batch_size=batch_size, collate_fn=FastTextFormatCompositeDataset.collate)
+    else:
+        raise ValueError('Specified training data path(s) should be a str or a list.')
+

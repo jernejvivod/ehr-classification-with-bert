@@ -49,7 +49,7 @@ def _run_task(parsed_args: dict):
         # COMPUTING DOCUMENT EMBEDDINGS FROM fastText FORMAT INPUT
         logger.info('Obtaining entity embeddings.')
         _task_get_entity_embeddings(parsed_args)
-    if parsed_args['task'] == Tasks.TRAIN_CNN_MODEL.value:
+    elif parsed_args['task'] == Tasks.TRAIN_CNN_MODEL.value:
         # COMPUTING DOCUMENT EMBEDDINGS FROM fastText FORMAT INPUT
         logger.info('Training CNN-based model.')
         _task_train_cnn_model(parsed_args)
@@ -96,12 +96,14 @@ def _add_subparser_for_get_entity_embeddings(subparsers):
 def _add_subparser_for_train_cnn_model(subparsers):
     train_cnn_model_parser = subparsers.add_parser(Tasks.TRAIN_CNN_MODEL.value)
     train_cnn_model_parser.add_argument('--train-data-path', type=file_path, required=True, nargs='+',
+                                        action=UnnestSingletonListElement,
                                         help='Path to file containing the training data in FastText format')
     train_cnn_model_parser.add_argument('--word-embeddings-path', type=file_path, required=True,
                                         help='Path to file containing the word embeddings in TSV format')
     train_cnn_model_parser.add_argument('--n-labels', type=positive_int, required=True,
                                         help='Number of unique labels in the dataset')
     train_cnn_model_parser.add_argument('--val-data-path', type=file_path, default=None, nargs='+',
+                                        action=UnnestSingletonListElement,
                                         help='Path to file containing the validation data in FastText format.'
                                              ' No validation will be performed during training if not specified.')
     train_cnn_model_parser.add_argument('--output-dir', type=dir_path, default='.',
@@ -139,13 +141,16 @@ def _add_subparser_for_get_train_test_split(subparsers):
 
 def _add_subparser_for_evaluate_embeddings_model(subparsers):
     evaluate_embeddings_model_parser = subparsers.add_parser(Tasks.EVALUATE_EMBEDDINGS_MODEL.value)
-    evaluate_embeddings_model_parser.add_argument('--method', type=str, nargs='+', required=True,  # TODO check - will always produce a list!
+    evaluate_embeddings_model_parser.add_argument('--method', type=str, nargs='+', required=True,
+                                                  action=UnnestSingletonListElement,
                                                   choices=[v.value for v in EntityEmbeddingMethod],
                                                   help='Entity embedding method to evaluate_embeddings_model')
-    evaluate_embeddings_model_parser.add_argument('--train-data-path', type=file_path, nargs='+', required=True,  # TODO check - will always produce a list!
+    evaluate_embeddings_model_parser.add_argument('--train-data-path', type=file_path, nargs='+', required=True,
+                                                  action=UnnestSingletonListElement,
                                                   help='Path to file containing the training data in fastText format'
                                                        ' (for training internal classifiers)')
-    evaluate_embeddings_model_parser.add_argument('--test-data-path', type=file_path, nargs='+', required=True, # TODO check - will always produce a list!
+    evaluate_embeddings_model_parser.add_argument('--test-data-path', type=file_path, nargs='+', required=True,
+                                                  action=UnnestSingletonListElement,
                                                   help='Path to file containing the test data in fastText format')
     evaluate_embeddings_model_parser.add_argument('--validation-size', type=proportion_float, default=0.3,
                                                   help='Proportion of the dataset to use for hyperparameter tuning')
@@ -302,9 +307,13 @@ def _get_clf_gs(parsed_args: dict) -> AClassifier:
 
     logger.info('Training classifier using grid-search.')
 
-    if not all([el in [e.value for e in EntityEmbeddingMethod] and
-                el != EntityEmbeddingMethod.STARSPACE.value for el in parsed_args['method']]):
-        raise NotImplementedError('Method \'{}\' not supported when using grid search.')
+    # assert embedding method supported
+    valid_methods = [e.value for e in EntityEmbeddingMethod if e != EntityEmbeddingMethod.STARSPACE]
+    method = parsed_args['method']
+    if not all([el in valid_methods for el in ([method] if isinstance(method, str) else method[0])]):
+        raise NotImplementedError('Method \'{}\' not supported when using grid search.'.format(method))
+
+    train_data_path = parsed_args['train_data_path']
 
     train_paths, val_paths = get_train_and_val_paths_for_multiple_train_files(
         lambda path, train_suffix, test_suffix: get_train_test_split(
@@ -315,7 +324,7 @@ def _get_clf_gs(parsed_args: dict) -> AClassifier:
             train_suffix=train_suffix,
             test_suffix=test_suffix
         ),
-        parsed_args['train_data_path'],
+        [train_data_path] if isinstance(train_data_path, str) else train_data_path,
         'gs_train',
         'gs_val'
     )
@@ -326,7 +335,7 @@ def _get_clf_gs(parsed_args: dict) -> AClassifier:
         train_data_path=train_paths if len(train_paths) > 1 else train_paths[0],
         validation_data_path=val_paths if len(val_paths) > 1 else val_paths[0],
         param_grid=param_grid,
-        embedding_method=parsed_args['method'] if len(parsed_args['method']) > 1 else parsed_args['method'][0],
+        embedding_method=method,
         clf_internal=clf_internal,
         cv=parsed_args['cv']
     )
@@ -345,6 +354,11 @@ def _get_internal_clf(internal_clf_kind: str):
         return DummyClassifier
     else:
         raise NotImplementedError('Classifier {0} not implemented.'.format(internal_clf_kind))
+
+
+class UnnestSingletonListElement(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, values[0] if len(values) == 1 else values)
 
 
 if __name__ == '__main__':
