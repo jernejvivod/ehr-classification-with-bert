@@ -254,11 +254,13 @@ def _task_train_test_split(parsed_args: dict):
 def _task_evaluate_embeddings_model(parsed_args: dict):
     logger.info('Performing evaluation of method \'{0}\''.format(parsed_args['method']))
 
-    if parsed_args['embeddings_path'] is not None or (
-            parsed_args['doc2vec_model_path'] is not None and parsed_args['method'] == 'doc2vec'):
-        clf = _get_clf_stored_embeddings(parsed_args)
-    else:
-        clf = _get_clf_gs(parsed_args)
+    # TODO the following is deprecated. All functionality is subsumed in the _get_clf_gs(parsed_args) call.
+    # if parsed_args['embeddings_path'] is not None or (
+    #         parsed_args['doc2vec_model_path'] is not None and parsed_args['method'] == 'doc2vec'):
+    #     clf = _get_clf_stored_embeddings(parsed_args)
+    # else:
+
+    clf = _get_clf_gs(parsed_args)
 
     evaluate_embeddings_model(clf, parsed_args['method'], parsed_args['test_data_path'], parsed_args['results_path'])
 
@@ -279,6 +281,7 @@ def _task_evaluate_cnn_model(parsed_args: dict):
     )
 
 
+# TODO the following is deprecated. All functionality is subsumed in the _get_clf_gs function.
 def _get_clf_stored_embeddings(parsed_args: dict) -> AClassifier:
     """Get AClassifier instance initialized with stored embeddings."""
 
@@ -333,7 +336,7 @@ def _get_clf_gs(parsed_args: dict) -> AClassifier:
         'gs_train',
         'gs_val'
     )
-    param_grid = parse_param_grid(parsed_args['param_grid_path'])
+    param_grid = parse_param_grid(parsed_args['param_grid_path']) if parsed_args['param_grid_path'] is not None else {}
     clf_internal = _get_internal_clf(parsed_args['internal_clf'])
 
     clf = get_clf_with_internal_clf_gs(
