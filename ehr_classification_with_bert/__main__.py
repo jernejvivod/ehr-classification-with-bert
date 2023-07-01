@@ -66,9 +66,21 @@ def _run_task(parsed_args: dict):
         )
 
         if parsed_args['segmented']:
-            evaluate_model_segmented(loaded_model, eval_dataloader)
+            evaluate_model_segmented(
+                loaded_model,
+                eval_dataloader,
+                parsed_args['unique_labels'],
+                parsed_args['class_names'],
+                parsed_args['results_path']
+            )
         else:
-            evaluate_model(loaded_model, eval_dataloader)
+            evaluate_model(
+                loaded_model,
+                eval_dataloader,
+                parsed_args['unique_labels'],
+                parsed_args['class_names'],
+                parsed_args['results_path']
+            )
 
 
 def _add_subparsers_for_fine_tune(subparsers):
@@ -107,6 +119,12 @@ def _add_subparsers_for_evaluate(subparsers):
     fine_tune_parser.add_argument('--segmented', action='store_true',
                                   help='Evaluate model on segmented test data by applying it to each segment and'
                                        ' taking the mode of the segment predictions as the prediction for an example.')
+    fine_tune_parser.add_argument('--unique-labels', type=int, nargs='+', required=True,
+                                  help='Unique labels present in the dataset')
+    fine_tune_parser.add_argument('--class-names', type=str, nargs='+', required=True,
+                                  help='Names associated with the labels (in same order)')
+    fine_tune_parser.add_argument('--results-path', type=_util.argparse_type_dir_path, default='.',
+                                  help='Path to directory in which to save the results')
 
 
 if __name__ == '__main__':
