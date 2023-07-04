@@ -1,26 +1,25 @@
 import argparse
 import os
-from typing import Optional, Union, Iterable, Any, Dict
+import re
+from typing import Optional, Union, Iterable, Any, Dict, List
 
 import datasets
-from datasets import TextClassification, ClassLabel, Split
+from datasets import ClassLabel
 from datasets.formatting.formatting import LazyRow
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
 
-def get_dataloader(data_file_path: str,
+def get_dataloader(data_file_path: Union[str, List[str]],
                    n_labels: int,
-                   split: Union[str, Split],
-                   batch_size: int = 16,
+                   batch_size: int = 32,
                    truncate_dataset_to: Optional[int] = None,
                    split_above_tokens_limit: bool = False,
                    group_splits: bool = False) -> DataLoader:
     """Get PyTorch DataLoader for specified dataset.
 
-    :param data_file_path: Path to file containing the dataset
+    :param data_file_path: Path(s) to file(s) containing the dataset
     :param n_labels: Number of unique labels in the dataset
-    :param split: Part of dataset to use (train, validation, test, all)
     :param batch_size: Batch size to use
     :param truncate_dataset_to: If not None, truncate the dataset to have the specified number of samples
     :param split_above_tokens_limit: If True, split examples above the tokenization length limit into multiple examples
@@ -28,23 +27,39 @@ def get_dataloader(data_file_path: str,
     """
 
     # load data from file
-    dataset = datasets.load_dataset('text', data_files={split: data_file_path})[split]
+    dataset = datasets.load_dataset(
+        'text',
+        data_files={str(idx): p for idx, p in
+                    enumerate([data_file_path] if isinstance(data_file_path, str) else data_file_path)}
+    )
+
+    # add data from other related datasets as separate columns
+    if isinstance(data_file_path, list):
+        for idx in range(1, len(data_file_path)):
+            dataset['0'] = dataset['0'].add_column('related_data_{}'.format(str(idx)), dataset[str(idx)]['text'])
+    dataset = dataset['0']
 
     label_prefix_length = len('__label__')
 
     # preprocess the dataset
     def pre_process_dataset(example):
-        return {
+        res = {
             'text': ' '.join(example['text'].split(' ')[:-1]),
-            'label': int(example['text'].split(' ')[-1][label_prefix_length:])
+            'labels': int(example['text'].split(' ')[-1][label_prefix_length:])
         }
+
+        # columns for data for related datasets
+        for key in example.keys():
+            if re.match(r'related_data_\d+$', key) is not None:
+                res[key] = ' '.join(example[key].split(' ')[:-1])
+
+        return res
 
     dataset = dataset.map(pre_process_dataset, load_from_cache_file=False)
     dataset = dataset.cast_column(
-        'label',
+        'labels',
         ClassLabel(num_classes=n_labels, names=['__label__{}'.format(i) for i in range(n_labels)])
     )
-    dataset = dataset.prepare_for_task(TextClassification(text_column="text", label_column="label"))
 
     # tokenization padding and truncation depend on whether we are splitting examples with length above the limit
     tokenization_padding = 'max_length' if not split_above_tokens_limit else 'do_not_pad'
@@ -54,7 +69,8 @@ def get_dataloader(data_file_path: str,
     tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
     tokenized_datasets = dataset.map(
         lambda example: tokenizer(example['text'], padding=tokenization_padding, truncation=tokenization_truncation),
-        batched=True
+        batched=True,
+        remove_columns='text'
     )
 
     # if splitting examples above the number of tokens limit, split
@@ -80,7 +96,7 @@ def get_dataloader(data_file_path: str,
     if truncate_dataset_to:
         processed_dataset = processed_dataset.select(range(truncate_dataset_to))
 
-    return DataLoader(processed_dataset, shuffle=True, batch_size=batch_size, )
+    return DataLoader(processed_dataset, shuffle=True, batch_size=batch_size)
 
 
 def split_example_above_length_limit(
