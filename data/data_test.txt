@@ -1,2 +1,0 @@
-this is a simple test __label__0
-this is another simple test __label__1

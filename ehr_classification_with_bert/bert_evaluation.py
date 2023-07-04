@@ -9,6 +9,7 @@ from sklearn import metrics
 from torch.utils.data import DataLoader
 
 from ehr_classification_with_bert import device, logger
+from ehr_classification_with_bert.model.ensemble_bert_model import EnsembleBertModel
 
 
 def evaluate_model(model, eval_dataloader: DataLoader, unique_labels, class_names, results_path: str = '.'):
@@ -30,19 +31,21 @@ def evaluate_model(model, eval_dataloader: DataLoader, unique_labels, class_name
     y_true = torch.empty(0, dtype=torch.int64).to(device)
 
     for batch in eval_dataloader:
-        batch.pop('text')  # TODO should only remove if using BERT-only model
 
         # compute prediction
         with torch.no_grad():
-            outputs = model(**{k: v.to(device) for k, v in batch.items()})
+            outputs = model(**{k: v.to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v
+                               for k, v in batch.items()})
 
         # accumulate values
-        y_proba_nxt = nnf.softmax(outputs.logits, dim=1)
+        logits = outputs.logits if hasattr(outputs, 'logits') else outputs
+        y_proba_nxt = nnf.softmax(logits, dim=1)
         predicted_proba = torch.cat((predicted_proba, y_proba_nxt), dim=0)
         y_true = torch.cat((y_true, batch['labels'].to(device)))
 
     # evaluate computed predictions and produce plots
-    evaluate_predictions(predicted_proba, y_true, unique_labels, class_names, results_path)
+    model_name = 'BERT' if not isinstance(model, EnsembleBertModel) else 'BERT_ENSEMBLE'
+    evaluate_predictions(predicted_proba, y_true, unique_labels, class_names, model_name, results_path)
 
 
 def evaluate_model_segmented(model, eval_dataloader: DataLoader, unique_labels, class_names, results_path: str = '.'):
@@ -70,35 +73,37 @@ def evaluate_model_segmented(model, eval_dataloader: DataLoader, unique_labels, 
     y_true = torch.empty(0, dtype=torch.int64).to(device)
 
     for batch in eval_dataloader:
-        # unnest values in text column
-        batch['text'] = [t[0] for t in batch['text']]
-        batch.pop('text')  # TODO should only remove if using BERT-only model
 
         # compute prediction
         with torch.no_grad():
-            outputs = model(**{k: v[0].to(device) for k, v in batch.items()})
+            outputs = model(**{k: v[0].to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v
+                               for k, v in batch.items()})
 
         # accumulate values
-        mean_logits_for_segments = torch.mean(outputs.logits, dim=0)  # compute mean logits for segments
+        logits = outputs.logits if hasattr(outputs, 'logits') else outputs
+        mean_logits_for_segments = torch.mean(logits, dim=0)  # compute mean logits for segments
         y_proba_nxt = nnf.softmax(mean_logits_for_segments, dim=0).unsqueeze(dim=0)
         predicted_proba = torch.cat((predicted_proba, y_proba_nxt), dim=0)
         y_true = torch.cat((y_true, batch['labels'][0][0].view(1).to(device)))
 
     # evaluate computed predictions and produce plots
-    evaluate_predictions(predicted_proba, y_true, unique_labels, class_names, results_path)
+    model_name = 'BERT' if not isinstance(model, EnsembleBertModel) else 'BERT_ENSEMBLE'
+    evaluate_predictions(predicted_proba, y_true, unique_labels, class_names, model_name, results_path)
 
 
 def evaluate_predictions(predicted_proba: torch.tensor,
                          y_true: torch.tensor,
                          unique_labels: list,
                          class_names: list,
-                         results_path: str):
+                         model_name: str = '',
+                         results_path: str = '.'):
     """Evaluate computed predictions on a test set.
 
     :param predicted_proba: Predicted probabilities of classes
     :param y_true: Ground truth values
     :param unique_labels: Unique labels present in the dataset
     :param class_names: Names associated with the labels (in same order)
+    :param model_name: Name of the evaluated model (for formatting output filenames)
     :param results_path: Path to directory in which to store the results
     """
 
@@ -108,26 +113,9 @@ def evaluate_predictions(predicted_proba: torch.tensor,
 
     # write classification report
     classification_report = metrics.classification_report(y_true.tolist(), y_pred.tolist())
-    write_classification_report(classification_report, results_path, 'CNN')
+    write_classification_report(classification_report, results_path, model_name)
 
     # visualize confusion matrix
-    plot_confusion_matrix(y_pred.tolist(), y_true.tolist(), unique_labels, class_names, results_path, 'CNN')
+    plot_confusion_matrix(y_pred.tolist(), y_true.tolist(), unique_labels, class_names, results_path, model_name)
     if len(unique_labels) == 2:
-        plot_roc(predicted_proba.numpy(), y_true.tolist(), unique_labels[1], results_path, 'CNN')
-
-
-def write_results_to_file(metric: EvaluationModule, results_path: str):
-    """Write evaluation results to a file at the specified path.
-
-    :param metric: EvaluationModule initialized with predictions
-    :param results_path: Path to directory in which to store the results
-    """
-
-    result = metric.compute()
-
-    results_file = 'results.txt'
-
-    logger.info('Saving results to %s', os.path.join(os.path.abspath(results_path), results_file))
-
-    with open(os.path.abspath(os.path.join(results_path, results_file)), 'w') as f:
-        f.write('accuracy: {:.2f}'.format(result['accuracy']))
+        plot_roc(predicted_proba.numpy(), y_true.tolist(), unique_labels[1], results_path, model_name)

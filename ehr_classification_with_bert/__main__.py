@@ -1,13 +1,14 @@
 import argparse
 import sys
 
-from datasets import Split
-from transformers import AutoModelForSequenceClassification
+import torch
+from transformers import BertForSequenceClassification
 
 from ehr_classification_with_bert import _util, Tasks, logger, device
 from ehr_classification_with_bert._util import argparse_type_file_path, argparse_type_dir_path
 from ehr_classification_with_bert.bert_evaluation import evaluate_model_segmented, evaluate_model
-from ehr_classification_with_bert.bert_fine_tuning import fine_tune_bert
+from ehr_classification_with_bert.bert_fine_tuning import fine_tune_bert, ModelType
+from ehr_classification_with_bert.model.ensemble_bert_model import EnsembleBertModel
 
 
 def main(argv=None):
@@ -30,10 +31,19 @@ def _run_task(parsed_args: dict):
     if parsed_args['task'] == Tasks.FINE_TUNE.value:
         logger.info('Running fine-tune task.')
 
+        # assert that correct number of data file paths specified for model type
+        if parsed_args['model_type'] != ModelType.BERT_ONLY.value and \
+                not isinstance(parsed_args['data_file_path'], list):
+            raise ValueError('At least two data file paths should be specified when using model type \'{}\'.'
+                             .format(parsed_args['model_type']))
+        elif parsed_args['model_type'] == ModelType.BERT_ONLY.value and \
+                not isinstance(parsed_args['data_file_path'], str):
+            raise ValueError('Only one data file path should be specified when using model type \'{}\'.'
+                             .format(parsed_args['model_type']))
+
         train_dataloader = _util.get_dataloader(
             data_file_path=parsed_args['data_file_path'],
             n_labels=parsed_args['n_labels'],
-            split=Split.TRAIN,
             batch_size=parsed_args['batch_size'],
             truncate_dataset_to=parsed_args['truncate_dataset_to'],
             split_above_tokens_limit=parsed_args['split_long_examples'],
@@ -41,24 +51,35 @@ def _run_task(parsed_args: dict):
         )
 
         fine_tune_bert(
-            train_dataloader,
+            model_type=parsed_args['model_type'],
+            train_dataloader=train_dataloader,
             n_labels=parsed_args['n_labels'],
-            base_model=parsed_args['base_model'],
+            base_bert_model=parsed_args['base_bert_model'],
+            hidden_size=parsed_args['hidden_size'],
+            freeze_emb_model=parsed_args['freeze_emb_model'],
             model_save_path=parsed_args['model_save_path'],
-            n_epochs=parsed_args['n_epochs']
+            n_epochs=parsed_args['n_epochs'],
+            train_data_path=parsed_args['data_file_path'],
+            emb_model_path=parsed_args['emb_model_path'],
+            emb_model_method=parsed_args['emb_model_method'],
+            emb_model_args=parsed_args['emb_model_args']
         )
 
     elif parsed_args['task'] == Tasks.EVALUATE.value:
         logger.info('Running evaluate task.')
 
-        loaded_model = AutoModelForSequenceClassification.from_pretrained(
-            parsed_args['model_path']
-        ).to(device)
+        loaded_model = torch.load(parsed_args['model_path'], map_location=device)
+
+        # assert that correct number of data file paths specified for model type
+        if isinstance(loaded_model, EnsembleBertModel) and not isinstance(parsed_args['data_file_path'], list):
+            raise ValueError('At least two data file paths should be specified when using an ensemble model.')
+        elif isinstance(loaded_model, BertForSequenceClassification) and not isinstance(parsed_args['data_file_path'], str):
+            raise ValueError('Only one data file path should be specified when using a BERT model.')
 
         eval_dataloader = _util.get_dataloader(
             data_file_path=parsed_args['data_file_path'],
             n_labels=parsed_args['n_labels'],
-            split=Split.TEST,
+            # batch size of 1 during testing is needed for the special classification procedure
             batch_size=1 if parsed_args['segmented'] else parsed_args['batch_size'],
             truncate_dataset_to=parsed_args['truncate_dataset_to'],
             split_above_tokens_limit=parsed_args['segmented'],
@@ -85,30 +106,46 @@ def _run_task(parsed_args: dict):
 
 def _add_subparsers_for_fine_tune(subparsers):
     fine_tune_parser = subparsers.add_parser(Tasks.FINE_TUNE.value)
-    fine_tune_parser.add_argument('--data-file-path', type=argparse_type_file_path, required=True,
+    fine_tune_parser.add_argument('--data-file-path', type=argparse_type_file_path, required=True, nargs='+',
+                                  action=UnnestSingletonListElement,
                                   help='Path to file containing the fine-tuning data.')
+    fine_tune_parser.add_argument('--model-type', type=str, choices=[v.value for v in ModelType],
+                                  default=ModelType.BERT_ONLY.value, help='Model type to use')
+    fine_tune_parser.add_argument('--emb-model-path', type=_util.argparse_type_file_path,
+                                  help='Path to stored model to use in an ensemble with BERT.')
+    fine_tune_parser.add_argument('--hidden-size', type=_util.argparse_type_positive_int, default=32,
+                                  help='Size of hidden layers in the classifier used in the ensemble model.')
     fine_tune_parser.add_argument('--n-labels', type=_util.argparse_type_positive_int, required=True,
                                   help='Number of unique labels in the dataset.')
-    fine_tune_parser.add_argument('--base-model', type=str, default='bert-base-cased',
+    fine_tune_parser.add_argument('--base-bert-model', type=str, default='bert-base-cased',
                                   help='Base BERT model to use.')
+    fine_tune_parser.add_argument('--freeze-emb-model', action='store_true',
+                                  help='Freeze the ensembled model during fine-tuning')
     fine_tune_parser.add_argument('--model-save-path', type=argparse_type_dir_path, default='.',
                                   help='Path to directory in which to save the fine-tuned model.')
     fine_tune_parser.add_argument('--n-epochs', type=_util.argparse_type_positive_int, default=4,
                                   help='Number of epochs to use during fine-tuning.')
-    fine_tune_parser.add_argument('--batch-size', type=_util.argparse_type_positive_int, default=16,
+    fine_tune_parser.add_argument('--batch-size', type=_util.argparse_type_positive_int, default=32,
                                   help='Batch size to use during fine-tuning.')
     fine_tune_parser.add_argument('--truncate-dataset-to', type=_util.argparse_type_positive_int,
                                   help='Truncate the dataset to the specified number of samples.')
     fine_tune_parser.add_argument('--split-long-examples', action='store_true',
                                   help='Split examples whose token length is longer than the maximum length accepted by'
                                        ' the model into multiple examples.')
+    fine_tune_parser.add_argument('--emb-model-method', type=str,
+                                  choices=['word2vec', 'fasttext', 'doc2vec', 'starspace'], default='word2vec',
+                                  help='Embedding method to use if ensembling with an aggregate embeddings-based model.')
+    fine_tune_parser.add_argument('--emb-model-args', type=str, default='',
+                                  help='Arguments passed to embedding model implementation (key-value pairs such as'
+                                       ' val=1 enclosed in quotes with no commas separated by spaces)')
 
 
 def _add_subparsers_for_evaluate(subparsers):
     fine_tune_parser = subparsers.add_parser(Tasks.EVALUATE.value)
-    fine_tune_parser.add_argument('--model-path', type=argparse_type_dir_path, required=True,
-                                  help='Path to directory containing the saved model to evaluate.')
-    fine_tune_parser.add_argument('--data-file-path', type=argparse_type_file_path, required=True,
+    fine_tune_parser.add_argument('--model-path', type=argparse_type_file_path, required=True,
+                                  help='Path to the saved model to evaluate.')
+    fine_tune_parser.add_argument('--data-file-path', type=argparse_type_file_path, required=True, nargs='+',
+                                  action=UnnestSingletonListElement,
                                   help='Path to file containing the evaluation data.')
     fine_tune_parser.add_argument('--n-labels', type=_util.argparse_type_positive_int, required=True,
                                   help='Number of unique labels in the dataset.')
@@ -125,6 +162,11 @@ def _add_subparsers_for_evaluate(subparsers):
                                   help='Names associated with the labels (in same order)')
     fine_tune_parser.add_argument('--results-path', type=_util.argparse_type_dir_path, default='.',
                                   help='Path to directory in which to save the results')
+
+
+class UnnestSingletonListElement(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, values[0] if len(values) == 1 else values)
 
 
 if __name__ == '__main__':
