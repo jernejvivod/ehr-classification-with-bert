@@ -9,7 +9,7 @@ output_dir="$script_path/results"
 # load configuration variables
 source "$script_path/config/config.cfg"
 
-data_file_path=$(find "$script_path/data/" -name '*train.txt' | head -n 1)
+data_file_path=$(find "$script_path/data/" -name '*train.txt' | sort | tr '\n' ' ')
 
 if [[ -z "$data_file_path" ]]; then
   echo "Error: no train data file found in data directory."
@@ -70,4 +70,5 @@ if [[ -v emb_model_args ]]; then
   fine_tune_command+="--emb-model-args $emb_model_args "
 fi
 
+echo "$fine_tune_command"
 eval "$fine_tune_command"
