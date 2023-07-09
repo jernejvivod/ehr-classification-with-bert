@@ -97,12 +97,16 @@ def get_doc2vec_embeddings(train_data_path: str, output_dir: str, doc2vec_args: 
     return out_path
 
 
-def get_doc_embedder_instance(method: str, train_data_path: str, method_args: str = "", **a_doc_embedder_kwargs) -> ADocEmbedder:
+def get_doc_embedder_instance(method: str,
+                              train_data_path: str,
+                              method_args: str = '',
+                              **a_doc_embedder_kwargs) -> ADocEmbedder:
     """get ADocEmbedder instance trained on specified training file
 
     :param method: embedding method to use ('word2vec', 'fasttext', 'doc2vec', or 'starspace')
     :param train_data_path: path to training data in fastText format
     :param method_args: arguments passed to embedding implementation
+    (key-value pairs such as val=1 enclosed in quotes with no commas separated by spaces)
     :param a_doc_embedder_kwargs: additional keyword arguments to pass to the ADocEmbedder instance constructor
     """
 

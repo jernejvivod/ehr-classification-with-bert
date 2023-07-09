@@ -13,8 +13,8 @@ class CompositeEmbedder(ADocEmbedder):
     def get_word_to_embedding(self, train_sentences: List[List[str]], y: list):
         raise NotImplementedError('Method not supported.')
 
-    def fit(self, train_sentences: List[List[List[str]]], y: list):
-        for train_sentences_sect, embedder in zip(CompositeEmbedder._transform_sentence_lists_to_list_of_lists_of_sentences(train_sentences), self.embedders):
+    def fit(self, X: List[List[List[str]]], y: list):
+        for train_sentences_sect, embedder in zip(CompositeEmbedder._transform_sentence_lists_to_list_of_lists_of_sentences(X), self.embedders):
             embedder.fit(train_sentences_sect, y)
         return self
 

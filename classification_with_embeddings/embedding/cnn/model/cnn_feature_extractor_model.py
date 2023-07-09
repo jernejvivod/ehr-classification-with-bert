@@ -38,6 +38,9 @@ class CnnTextFeatureExtractionModel(nn.Module):
         self.global_max_pooling = nn.AdaptiveMaxPool2d((1, 1))
         self.relu = nn.ReLU(inplace=True)
 
+        # size of feature vector
+        self.vector_size = len(self.filters) * n_filter_channels
+
     def _get_inputs_from_text(self, x: List[List[str]]) -> torch.tensor:
         """Get padded tensor for batch of text data (tokens).
 

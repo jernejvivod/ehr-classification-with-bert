@@ -70,7 +70,11 @@ class TestEmbed(unittest.TestCase):
     def test_get_doc_embedder_instance(self):
         doc_embedder = get_doc_embedder_instance('word2vec', get_relative_path(__file__, '../mock_data/sanity_check_dataset_train.txt'))
         self.assertIsNotNone(doc_embedder)
+
         res = doc_embedder.transform([['pear', 'apple'], ['cat', 'hedgehog']])
+        self.assertEqual((2, 100), res.shape)
+
+        res = doc_embedder([['pear', 'apple'], ['cat', 'hedgehog']])
         self.assertEqual((2, 100), res.shape)
 
     def _assert_and_delete_created_embeddings_file(self, file_path: str, n_embeddings: int):

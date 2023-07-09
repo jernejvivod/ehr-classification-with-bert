@@ -19,15 +19,15 @@ class ADocEmbedder(ABC, BaseEstimator, TransformerMixin):
         self.method_kwargs = {}
         self._word_to_embedding = None
 
-    def fit(self, train_sentences: Union[List[List[str]], Iterator], y: list):
-        self._word_to_embedding = self.get_word_to_embedding(train_sentences, y)
+    def fit(self, X: Union[List[List[str]], Iterator], y: list):
+        self._word_to_embedding = self.get_word_to_embedding(X, y)
         return self
 
-    def transform(self, test_sentences: List[List[str]]):
-        return get_aggregate_embeddings(test_sentences, self._word_to_embedding, method='average')
+    def transform(self, X: List[List[str]]):
+        return get_aggregate_embeddings(X, self._word_to_embedding, method='average')
 
-    def __call__(self, sentences: List[List[str]]):
-        return self.transform(test_sentences=sentences)
+    def __call__(self, X: List[List[str]]):
+        return self.transform(X)
 
     @staticmethod
     def factory(method: Union[str, List[str]] = 'word2vec', **kwargs):

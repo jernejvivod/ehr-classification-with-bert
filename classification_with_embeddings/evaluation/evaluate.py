@@ -61,6 +61,15 @@ def evaluate_cnn_model(model: torch.nn.Module,
                        results_path: str,
                        unique_labels: list,
                        class_names: list):
+    """Evaluate CNN-based classifier on test data and get classification report, confusion matrix, and ROC plot.
+
+    :param model: model to evaluate
+    :param test_data_loader: DataLoader for test data
+    :param results_path: path to directory in which to store the results
+    :param unique_labels: unique labels present in the dataset
+    :param class_names: names associated with the labels (in same order as the values specified for unique_labels)
+    """
+
     logger.info('Using device: %s', torch_device)
 
     # prepare model for evaluation
@@ -95,4 +104,4 @@ def evaluate_cnn_model(model: torch.nn.Module,
     plot_confusion_matrix(y_pred.tolist(), y_true.tolist(), unique_labels, class_names, results_path, 'CNN')
 
     if len(unique_labels) == 2:
-        plot_roc(predicted_proba.numpy(), y_true.tolist(), unique_labels[1], results_path, 'CNN')
+        plot_roc(predicted_proba.cpu().numpy(), y_true.tolist(), unique_labels[1], results_path, 'CNN')

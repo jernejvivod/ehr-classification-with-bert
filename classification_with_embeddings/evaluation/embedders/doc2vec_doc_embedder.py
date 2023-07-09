@@ -15,10 +15,10 @@ class Doc2VecDocEmbedder(ADocEmbedder):
     def get_word_to_embedding(self, train_sentences: Union[List[List[str]], Iterator], y: list):
         raise NotImplementedError('Method not supported.')
 
-    def fit(self, train_sentences: Union[List[List[str]], Iterator], y: list):
-        tagged_data = [TaggedDocument(words=s, tags=[str(i)]) for i, s in enumerate(train_sentences)]
+    def fit(self, X: Union[List[List[str]], Iterator], y: list):
+        tagged_data = [TaggedDocument(words=s, tags=[str(i)]) for i, s in enumerate(X)]
         self.model = Doc2Vec(tagged_data, vector_size=self.vector_size, **self.method_kwargs)
         return self
 
-    def transform(self, test_sentences: List[List[str]]):
-        return np.vstack([self.model.infer_vector(words) for words in test_sentences])
+    def transform(self, X: List[List[str]]):
+        return np.vstack([self.model.infer_vector(words) for words in X])
