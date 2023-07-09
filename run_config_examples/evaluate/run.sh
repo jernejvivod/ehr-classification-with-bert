@@ -9,7 +9,7 @@ output_dir="$script_path/results"
 # load configuration variables
 source "$script_path/config/config.cfg"
 
-data_file_path=$(find "$script_path/data/" -name '*test.txt' | head -n 1)
+data_file_path=$(find "$script_path/data/" -name '*test.txt' | sort | tr '\n' ' ')
 model_path=$(find "$script_path/data/" -name '*.pth' | head -n 1)
 
 if [[ -z "$data_file_path" ]]; then
@@ -48,4 +48,5 @@ if [[ -v class_names ]]; then
   evaluate_command+="--class-names $class_names "
 fi
 
+echo "$evaluate_command"
 eval "$evaluate_command"
