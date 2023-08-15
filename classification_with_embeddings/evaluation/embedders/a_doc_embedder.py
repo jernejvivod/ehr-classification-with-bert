@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import List, Iterator, Union, Dict
-import numpy as np
+from typing import List, Iterator, Union, Dict, Optional
 
+import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from classification_with_embeddings.embedding.embed_util import get_aggregate_embeddings
@@ -14,9 +14,9 @@ class ADocEmbedder(ABC, BaseEstimator, TransformerMixin):
     def get_word_to_embedding(self, train_sentences: Union[List[List[str]], Iterator], y: list) -> Dict[str, np.ndarray]:
         pass
 
-    def __init__(self, vector_size: int = 100, **kwargs):
-        self.vector_size = vector_size
-        self.method_kwargs = {}
+    def __init__(self, embedding_kwargs: Optional[dict] = None, **model_init_kwargs):
+        self.embedding_kwargs = embedding_kwargs if embedding_kwargs is not None else dict()
+        self.model_init_kwargs = model_init_kwargs
         self._word_to_embedding = None
 
     def fit(self, X: Union[List[List[str]], Iterator], y: list):

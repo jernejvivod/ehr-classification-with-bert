@@ -49,8 +49,7 @@ def get_clf_with_internal_clf_gs(train_data_path: Union[str, Iterable[str]],
                                  embedding_method: Union[str, List[str]] = 'word2vec',
                                  clf_internal=RandomForestClassifier,
                                  cv: int = 3,
-                                 no_grid_search: bool = False,
-                                 **a_doc_embedder_kwargs) -> AClassifier:
+                                 **a_doc_embedder_init_kwargs) -> AClassifier:
     """get internal classifier-based classifier (used within pipeline) with parameters tuned using grid-search.
 
     :param train_data_path: path to file(s) containing the training data in fastText format
@@ -59,20 +58,18 @@ def get_clf_with_internal_clf_gs(train_data_path: Union[str, Iterable[str]],
     :param embedding_method: embedding method to use ('word2vec', 'fasttext', 'doc2vec', or 'starspace')
     :param clf_internal: internal classifier to use
     :param cv: number of folds to use when doing cross-validation
-    :param no_grid_search: if True, the first parameter values specified in the param_grid will be used without
-    performing grid search
-    :param a_doc_embedder_kwargs: additional keyword arguments to pass to the ADocEmbedder instance constructor
+    :param a_doc_embedder_init_kwargs: additional keyword arguments to pass to the ADocEmbedder instance constructor for initialization
     :return: initialized PipelineClassifier instance
     """
 
     # define pipeline
     clf_pipeline = Pipeline([
-        ('embedding', ADocEmbedder.factory(embedding_method, **a_doc_embedder_kwargs)),
+        ('embedding', ADocEmbedder.factory(embedding_method, **a_doc_embedder_init_kwargs)),
         ('scaling', RobustScaler()),
         ('classification', clf_internal())
     ])
 
-    if not no_grid_search:
+    if validation_data_path is not None and param_grid is not None and len(param_grid) > 0:
         # run grid search
         grid_search = GridSearchCV(
             estimator=clf_pipeline,

@@ -11,6 +11,7 @@ source "$script_path/config/config.cfg"
 
 train_data_file=$(find "$script_path/data/" -name '*train.txt' | head -n 1)
 test_data_file=$(find "$script_path/data/" -name '*test.txt' | head -n 1)
+param_grid_path="$script_path/config/param_grid.json"
 
 if [[ -z "$train_data_file" ]]; then
   echo "Error: no train data file found in data directory."
@@ -22,44 +23,14 @@ if [[ -z "$test_data_file" ]]; then
   exit 1
 fi
 
-# get embeddings
-get_embeddings_command="python3 $script_path/../../classification_with_embeddings \
-          get-entity-embeddings \
-          --train-data-path $train_data_file \
-          --output-dir $output_dir "
-
-if [[ -v method ]]; then
-  get_embeddings_command+="--method $method "
-
-  if [[ "$method" == "word2vec" && -v word2vec_args ]]; then
-    get_embeddings_command+="--word2vec-args \"${word2vec_args//,/ }\" "
-  fi
-
-  if [[ "$method" == "fasttext" && -v fasttext_args ]]; then
-    get_embeddings_command+="--fasttext-args  \"${fasttext_args//,/ }\""
-  fi
-
-  if [[ "$method" == "starspace" && -v starspace_args ]]; then
-    get_embeddings_command+="--starspace-args \"${starspace_args//,/ }\" "
-  fi
-fi
-
-eval "$get_embeddings_command"
-
-embeddings_file=$(find "$script_path/results/" -name '*model.tsv' | head -n 1)
-
-if [[ -z "$embeddings_file" ]]; then
-  echo "Error: no embeddings file found in results directory."
-  exit 1
-fi
-
 # get evaluation results
 evaluate_command="python3 $script_path/../../classification_with_embeddings \
-          evaluate \
+          evaluate-embeddings-model \
           --train-data-path $train_data_file \
           --test-data-path $test_data_file \
-          --embeddings-path $embeddings_file \
-          --results-path $output_dir "
+          --results-path $output_dir \
+          --param-grid-path $param_grid_path \
+          --no-grid-search "
 
 if [[ -v method ]]; then
   evaluate_command+="--method $method "
@@ -80,4 +51,6 @@ if [[ -v clf ]]; then
   esac
 fi
 
+
+echo "$evaluate_command"
 eval "$evaluate_command"

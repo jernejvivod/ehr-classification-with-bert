@@ -1,6 +1,8 @@
+import os
 from typing import Tuple, List, Iterable
 
 from classification_with_embeddings import LABEL_WORD_PREFIX
+from classification_with_embeddings.evaluation import logger
 
 
 def _fasttext_data_to_x_y(data_path: str) -> Tuple[List[List[str]], List[str]]:
@@ -54,3 +56,34 @@ def _fasttext_data_to_x_y_multiple(data_paths: Iterable[str]) -> Tuple[List[List
 
     xs_trans = [[sections[idx] for sections in [s for s in xs]] for idx in range(len(xs[0]))]
     return xs_trans, ys[0]
+
+
+def _write_evaluation_prediction_data_to_file(method: str,
+                                              results_path: str,
+                                              y_pred: list = None,
+                                              scores: list = None,
+                                              y_true: list = None,
+                                              labels: list = None):
+    """Write classifier test prediction results to file.
+
+    :param method: embedding method(s) used
+    :param results_path: path to directory in which to store the results
+    :param y_pred: predictions of the classifier
+    :param scores: scores for classes (probabilities)
+    :param y_true: ground truth values
+    :param labels: unique labels
+    """
+
+    output_file_path = os.path.abspath(os.path.join(results_path, method + '_data' + '.txt'))
+    logger.info('Saving prediction evaluation data to {0}'.format(output_file_path))
+
+    with open(output_file_path, 'w') as f:
+        f.write('method: {}\n'.format(method))
+        if y_pred is not None:
+            f.write('y_pred: {}\n'.format(','.join(str(el) for el in y_pred)))
+        if scores is not None:
+            f.write('scores: {}\n'.format(','.join(str(el) for el in scores)))
+        if y_true is not None:
+            f.write('y_true: {}\n'.format(','.join(str(el) for el in y_true)))
+        if labels is not None:
+            f.write('labels: {}\n'.format(','.join(str(el) for el in labels)))

@@ -1,6 +1,6 @@
 import os
 import subprocess
-from typing import Union, List, Iterator, Dict
+from typing import Union, List, Iterator, Dict, Optional
 
 import numpy as np
 
@@ -14,9 +14,9 @@ class StarspaceDocEmbedder(ADocEmbedder):
     _TMP_TRAINING_DATA_PATH = './train_data_starspace.txt'
     _TMP_STARSPACE_MODEL_NAME = 'starspace_model'
 
-    def __init__(self, starspace_path: str, vector_size: int = 100, **kwargs):
-        super().__init__(vector_size=vector_size, **kwargs)
-        self.starspace_path = starspace_path
+    def __init__(self, embedding_kwargs: Optional[dict] = None, **model_init_kwargs):
+        super().__init__(embedding_kwargs=embedding_kwargs, **model_init_kwargs)
+        self.starspace_path = model_init_kwargs['starspace_path']
 
     def get_word_to_embedding(self, train_sentences: Union[List[List[str]], Iterator], y: list) -> Dict[str, np.ndarray]:
 
@@ -49,4 +49,3 @@ class StarspaceDocEmbedder(ADocEmbedder):
         os.remove(self._TMP_TRAINING_DATA_PATH)
         os.remove(self._TMP_STARSPACE_MODEL_NAME)
         os.remove(self._TMP_STARSPACE_MODEL_NAME + '.tsv')
-

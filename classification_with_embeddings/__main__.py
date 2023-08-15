@@ -315,38 +315,47 @@ def _get_clf_gs(parsed_args: dict) -> AClassifier:
 
     logger.info('Training classifier using grid-search.')
 
-    # assert embedding method supported
-    valid_methods = [e.value for e in EntityEmbeddingMethod if e != EntityEmbeddingMethod.STARSPACE]
     method = parsed_args['method']
-    if not all([el in valid_methods for el in ([method] if isinstance(method, str) else method[0])]):
-        raise NotImplementedError('Method \'{}\' not supported when using grid search.'.format(method))
 
+    # get training data and validation data paths for grid search (if applicable)
     train_data_path = parsed_args['train_data_path']
+    if not parsed_args['no_grid_search']:
 
-    train_paths, val_paths = get_train_and_val_paths_for_multiple_train_files(
-        lambda path, train_suffix, test_suffix: get_train_test_split(
-            path,
-            '.',
-            parsed_args['validation_size'],
-            not parsed_args['no_stratify'],
-            train_suffix=train_suffix,
-            test_suffix=test_suffix
-        ),
-        [train_data_path] if isinstance(train_data_path, str) else train_data_path,
-        'gs_train',
-        'gs_val'
-    )
+        # assert embedding method supported
+        valid_methods = [e.value for e in EntityEmbeddingMethod if e != EntityEmbeddingMethod.STARSPACE]
+        if not all([el in valid_methods for el in ([method] if isinstance(method, str) else method[0])]):
+            raise NotImplementedError('Method \'{}\' not supported when using grid search.'.format(method))
+
+        train_paths, val_paths = get_train_and_val_paths_for_multiple_train_files(
+            lambda path, train_suffix, test_suffix: get_train_test_split(
+                path,
+                '.',
+                1 - parsed_args['validation_size'],
+                not parsed_args['no_stratify'],
+                train_suffix=train_suffix,
+                test_suffix=test_suffix
+            ),
+            [train_data_path] if isinstance(train_data_path, str) else train_data_path,
+            'gs_train',
+            'gs_val'
+        )
+    else:
+        train_paths = train_data_path
+        val_paths = None
+
+    # parse parameters grid
     param_grid = parse_param_grid(parsed_args['param_grid_path']) if parsed_args['param_grid_path'] is not None else {}
+
+    # get internal classifier
     clf_internal = _get_internal_clf(parsed_args['internal_clf'])
 
     clf = get_clf_with_internal_clf_gs(
         train_data_path=train_paths if len(train_paths) > 1 else train_paths[0],
-        validation_data_path=val_paths if len(val_paths) > 1 else val_paths[0],
+        validation_data_path=None if val_paths is None else (val_paths if len(val_paths) > 1 else val_paths[0]),
         param_grid=param_grid,
         embedding_method=method,
         clf_internal=clf_internal,
         cv=parsed_args['cv'],
-        no_grid_search=parsed_args['no_grid_search'],
         embeddings_path=parsed_args['embeddings_path'],
         binary=parsed_args['binary'],
         starspace_path=parsed_args['starspace_path']

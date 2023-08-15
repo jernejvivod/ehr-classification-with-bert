@@ -9,9 +9,7 @@ class Word2VecDocEmbedder(ADocEmbedder):
     def get_word_to_embedding(self, train_sentences: Union[List[List[str]], Iterator], y: list):
         word2vec_model = Word2Vec(
             sentences=train_sentences,
-            vector_size=self.vector_size,
-            min_count=1,
-            **self.method_kwargs
+            **self.embedding_kwargs,
         )
 
         return {k: word2vec_model.wv[k] for k in word2vec_model.wv.index_to_key}

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
@@ -6,8 +6,8 @@ from classification_with_embeddings.evaluation.embedders.a_doc_embedder import A
 
 
 class CompositeEmbedder(ADocEmbedder):
-    def __init__(self, embedders: List[ADocEmbedder], vector_size: int = 100, **kwargs):
-        super().__init__(vector_size=vector_size, **kwargs)
+    def __init__(self, embedders: List[ADocEmbedder], embedding_kwargs: Optional[dict] = None, **model_init_kwargs):
+        super().__init__(embedding_kwargs=embedding_kwargs, **model_init_kwargs)
         self.embedders = embedders
 
     def get_word_to_embedding(self, train_sentences: List[List[str]], y: list):

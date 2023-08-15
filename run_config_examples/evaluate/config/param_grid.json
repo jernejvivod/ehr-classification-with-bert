@@ -1,0 +1,6 @@
+{
+  "embedding__embedding_kwargs": {
+    "min_count": 10,
+    "vector_size": 100
+  }
+}

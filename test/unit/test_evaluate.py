@@ -14,6 +14,7 @@ class TestEvaluate(unittest.TestCase):
         cm_suffix = '_cm.png'
         roc_suffix = '_roc.png'
         cr_suffix = '_cr.txt'
+        data_suffix = '_data.txt'
 
         word_to_embedding = get_word_to_embedding(get_relative_path(__file__, '../mock_data/mock_model.tsv'))
         training_data_path = get_relative_path(__file__, '../mock_data/train.txt')
@@ -23,6 +24,8 @@ class TestEvaluate(unittest.TestCase):
         self.assertTrue(os.path.exists(method_name + cm_suffix))
         self.assertTrue(os.path.exists(method_name + roc_suffix))
         self.assertTrue(os.path.exists(method_name + cr_suffix))
+        self.assertTrue(os.path.exists(method_name + data_suffix))
         os.remove(method_name + cm_suffix)
         os.remove(method_name + roc_suffix)
         os.remove(method_name + cr_suffix)
+        os.remove(method_name + data_suffix)

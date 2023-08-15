@@ -8,7 +8,8 @@ from torch.utils.data import DataLoader
 from classification_with_embeddings import torch_device
 from classification_with_embeddings.evaluation import logger
 from classification_with_embeddings.evaluation.clf.a_classifier import AClassifier
-from classification_with_embeddings.evaluation.util import _fasttext_data_to_x_y, _fasttext_data_to_x_y_multiple
+from classification_with_embeddings.evaluation.util import _fasttext_data_to_x_y, _fasttext_data_to_x_y_multiple, \
+    _write_evaluation_prediction_data_to_file
 from classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix, \
     plot_roc
 
@@ -44,12 +45,22 @@ def evaluate_embeddings_model(clf: AClassifier,
     # visualize confusion matrix
     plot_confusion_matrix(y_pred, y_true, clf.classes(), clf.classes(), results_path, method_name)
 
+    y_proba = None
     if _will_evaluate_roc(clf):
         logger.info('Computing predicted probabilities for ROC plot.')
         y_proba = clf.predict_proba(test_sentences)
 
         logger.info('Saving ROC plot.')
         plot_roc(y_proba, y_true, clf.classes()[1], results_path, method_name)
+
+    _write_evaluation_prediction_data_to_file(
+        method,
+        results_path,
+        y_pred.tolist(),
+        y_proba,
+        y_true,
+        clf.classes()
+    )
 
 
 def _will_evaluate_roc(clf) -> bool:
@@ -103,5 +114,16 @@ def evaluate_cnn_model(model: torch.nn.Module,
     # visualize confusion matrix
     plot_confusion_matrix(y_pred.tolist(), y_true.tolist(), unique_labels, class_names, results_path, 'CNN')
 
+    predicted_proba_numpy = None
     if len(unique_labels) == 2:
-        plot_roc(predicted_proba.cpu().numpy(), y_true.tolist(), unique_labels[1], results_path, 'CNN')
+        predicted_proba_numpy = predicted_proba.cpu().numpy()
+        plot_roc(predicted_proba_numpy, y_true.tolist(), unique_labels[1], results_path, 'CNN')
+
+    _write_evaluation_prediction_data_to_file(
+        'CNN',
+        results_path,
+        y_pred.tolist(),
+        predicted_proba_numpy,
+        y_true,
+        class_names
+    )
