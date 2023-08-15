@@ -32,6 +32,7 @@ class InternalClassifier(Enum):
     LOGISTIC_REGRESSION = 'logistic-regression'
     RANDOM_FOREST = 'random-forest'
     SVC = 'svc'
+    GRADIENT_BOOSTING = 'gradient-boosting'
     DUMMY = 'dummy'
 
 

@@ -44,3 +44,4 @@ tqdm~=4.64.0
 setuptools~=65.5.1
 dill~=0.3.6
 torch~=2.0.1
+xgboost~=1.7.6

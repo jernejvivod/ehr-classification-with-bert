@@ -4,7 +4,7 @@ import sys
 import torch
 from gensim.models import Doc2Vec
 from sklearn.dummy import DummyClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from torch.utils.data import DataLoader
@@ -371,6 +371,8 @@ def _get_internal_clf(internal_clf_kind: str):
         return RandomForestClassifier
     elif internal_clf_kind == InternalClassifier.SVC.value:
         return SVC
+    elif internal_clf_kind == InternalClassifier.GRADIENT_BOOSTING.value:
+        return GradientBoostingClassifier
     elif internal_clf_kind == InternalClassifier.DUMMY.value:
         return DummyClassifier
     else:

@@ -5,8 +5,8 @@ from classification_with_embeddings import LABEL_WORD_PREFIX
 from classification_with_embeddings.evaluation import logger
 
 
-def _fasttext_data_to_x_y(data_path: str) -> Tuple[List[List[str]], List[str]]:
-    """Transform data in FastText format to a List[List[str]] (list of tokenized sentences) and List[str] (labels).
+def _fasttext_data_to_x_y(data_path: str) -> Tuple[List[List[str]], List[int]]:
+    """Transform data in FastText format to a List[List[str]] (list of tokenized sentences) and List[int] (labels).
 
     :param data_path: path to data
     :return: tuple containing the tokenized sentences and labels
@@ -24,12 +24,15 @@ def _fasttext_data_to_x_y(data_path: str) -> Tuple[List[List[str]], List[str]]:
             if len(label_search) == 0:
                 raise ValueError('Label not found in sample {0} in {1}'.format(idx, data_path))
             gt_label = label_search[0].replace(LABEL_WORD_PREFIX, '')
-            y.append(gt_label)
+            try:
+                y.append(int(gt_label))
+            except ValueError:
+                raise ValueError('All labels in the provided dataset should be encoded as integer values.')
 
     return x, y
 
 
-def _fasttext_data_to_x_y_multiple(data_paths: Iterable[str]) -> Tuple[List[List[List[str]]], List[str]]:
+def _fasttext_data_to_x_y_multiple(data_paths: Iterable[str]) -> Tuple[List[List[List[str]]], List[int]]:
     """Transform multiple files relating to data in FastText format to a List[List[List[str]]] (list of lists of tokenized sentences all related to one entity).
 
     Transform data to lists of:

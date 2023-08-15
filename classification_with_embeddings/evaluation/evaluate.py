@@ -64,7 +64,7 @@ def evaluate_embeddings_model(clf: AClassifier,
 
 
 def _will_evaluate_roc(clf) -> bool:
-    return clf.supports_predict_proba and len(clf.classes()) == 2
+    return clf.supports_predict_proba() and len(clf.classes()) == 2
 
 
 def evaluate_cnn_model(model: torch.nn.Module,

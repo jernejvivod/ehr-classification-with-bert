@@ -20,7 +20,7 @@ class PipelineClassifier(AClassifier):
 
     def predict_proba(self, samples: List[List[str]]):
         if not hasattr(self._clf, 'predict_proba'):
-            raise ValueError()
+            raise ValueError('Classifier does not support predict_proba.')
         return self._clf.predict_proba([[w for w in sample if LABEL_WORD_PREFIX not in w] for sample in samples])
 
     def classes(self):
