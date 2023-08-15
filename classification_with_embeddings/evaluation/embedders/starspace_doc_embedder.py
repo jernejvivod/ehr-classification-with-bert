@@ -25,7 +25,8 @@ class StarspaceDocEmbedder(ADocEmbedder):
 
         # get StarSpace embeddings
         p = subprocess.run(
-            [self.starspace_path, 'train', '-trainFile', self._TMP_TRAINING_DATA_PATH, '-model', './' + self._TMP_STARSPACE_MODEL_NAME]
+            [self.starspace_path, 'train', '-trainFile', self._TMP_TRAINING_DATA_PATH, '-model', './' + self._TMP_STARSPACE_MODEL_NAME] +
+            self._embedding_kwargs_to_starspace_params()
         )
 
         if p.returncode != 0:
@@ -49,3 +50,10 @@ class StarspaceDocEmbedder(ADocEmbedder):
         os.remove(self._TMP_TRAINING_DATA_PATH)
         os.remove(self._TMP_STARSPACE_MODEL_NAME)
         os.remove(self._TMP_STARSPACE_MODEL_NAME + '.tsv')
+
+    def _embedding_kwargs_to_starspace_params(self) -> List[str]:
+        res = []
+        for k, v in self.embedding_kwargs.items():
+            res.append('-{}'.format(k))
+            res.append(str(v))
+        return res
