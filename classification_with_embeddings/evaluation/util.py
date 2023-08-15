@@ -83,10 +83,10 @@ def _write_evaluation_prediction_data_to_file(method: str,
     with open(output_file_path, 'w') as f:
         f.write('method: {}\n'.format(method))
         if y_pred is not None:
-            f.write('y_pred: {}\n'.format(','.join(str(el) for el in y_pred)))
+            f.write('y_pred: [{}]\n'.format(','.join(str(el) for el in y_pred)))
         if scores is not None:
-            f.write('scores: {}\n'.format(','.join(str(el) for el in scores)))
+            f.write('scores: [{}]\n'.format(','.join(str(el) for el in scores)))
         if y_true is not None:
-            f.write('y_true: {}\n'.format(','.join(str(el) for el in y_true)))
+            f.write('y_true: [{}]\n'.format(','.join(str(el) for el in y_true)))
         if labels is not None:
-            f.write('labels: {}\n'.format(','.join(str(el) for el in labels)))
+            f.write('labels: [{}]\n'.format(','.join(str(el) for el in labels)))
