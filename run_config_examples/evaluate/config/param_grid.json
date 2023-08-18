@@ -1,5 +1,5 @@
 {
   "embedding__embedding_kwargs": {
-    "dim": 300
+    "vector_size": 400
   }
 }

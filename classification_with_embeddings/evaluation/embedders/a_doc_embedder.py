@@ -3,6 +3,7 @@ from typing import List, Iterator, Union, Dict, Optional
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 from classification_with_embeddings.embedding.embed_util import get_aggregate_embeddings
 
@@ -18,13 +19,20 @@ class ADocEmbedder(ABC, BaseEstimator, TransformerMixin):
         self.embedding_kwargs = embedding_kwargs if embedding_kwargs is not None else dict()
         self.model_init_kwargs = model_init_kwargs
         self._word_to_embedding = None
+        self._word_to_idf_weight = None
 
     def fit(self, X: Union[List[List[str]], Iterator], y: list):
+
         self._word_to_embedding = self.get_word_to_embedding(X, y)
+
+        if 'use_idf_weights' in self.model_init_kwargs and self.model_init_kwargs['use_idf_weights']:
+            vectorizer = TfidfVectorizer().fit([' '.join(s) for s in X])
+            self._word_to_idf_weight = {k: v for k, v in zip(vectorizer.get_feature_names_out(), vectorizer.idf_) if k in self._word_to_embedding}
+
         return self
 
     def transform(self, X: List[List[str]]):
-        return get_aggregate_embeddings(X, self._word_to_embedding, method='average')
+        return get_aggregate_embeddings(X, self._word_to_embedding, self._word_to_idf_weight, method='average')
 
     def __call__(self, X: List[List[str]]):
         return self.transform(X)

@@ -177,6 +177,8 @@ def _add_subparser_for_evaluate_embeddings_model(subparsers):
                                                   choices=[e.value for e in InternalClassifier],
                                                   default=InternalClassifier.RANDOM_FOREST.value,
                                                   help='Internal classifier to use (if applicable)')
+    evaluate_embeddings_model_parser.add_argument('--use-idf-weights', action='store_true',
+                                                  help='Use IDF (inverse document frequency) weights when computing aggregated embeddings')
     evaluate_embeddings_model_parser.add_argument('--internal-clf-args', type=str, default='',
                                                   help='Arguments passed to internal classifier if applicable'
                                                        ' (key-value pairs such as val=1 enclose in quotes with no'
@@ -358,6 +360,7 @@ def _get_clf_gs(parsed_args: dict) -> AClassifier:
         cv=parsed_args['cv'],
         embeddings_path=parsed_args['embeddings_path'],
         binary=parsed_args['binary'],
+        use_idf_weights=parsed_args['use_idf_weights'],
         starspace_path=parsed_args['starspace_path']
     )
 
