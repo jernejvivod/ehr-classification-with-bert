@@ -48,6 +48,7 @@ def train_cnn_model(
     :param eval_every_steps: Perform evaluation on validation data every specified number of steps
     """
 
+    logger.info('Starting training of neural network.')
     logger.info('Using device: %s', torch_device)
 
     # initialize mapping of word to their embeddings
@@ -90,7 +91,7 @@ def train_cnn_model(
 
     # initialize progress bar
     num_training_steps = n_epochs * len(train_data_loader)
-    progress_bar = tqdm(range(num_training_steps))
+    progress_bar = tqdm(range(num_training_steps), desc="Training network", unit=" steps")
 
     # train model
     model.train()

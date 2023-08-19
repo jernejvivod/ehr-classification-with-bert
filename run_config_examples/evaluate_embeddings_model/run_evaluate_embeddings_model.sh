@@ -32,15 +32,19 @@ evaluate_command="python3 $script_path/../../classification_with_embeddings \
           --param-grid-path $param_grid_path \
           --no-grid-search "
 
-if [[ -v method ]]; then
+if [[ -n "$method" ]]; then
   evaluate_command+="--method $method "
+
+  if [[ "$method" == "starspace" ]]; then
+    evaluate_command+="--starspace-path $script_path/../../embedding_methods/StarSpace/starspace "
+  fi
 fi
 
-if [[ -v clf ]]; then
+if [[ -n "$clf" ]]; then
   evaluate_command+="--internal-clf $clf "
 
   case "$clf" in
-  "logistic-regression" | "random-forest" | "svc")
+  "logistic-regression" | "random-forest" | "svc" | "gradient-boosting")
     if [[ -v internal_clf_args ]]; then
       evaluate_command+="--internal-clf-args \"${internal_clf_args//,/ }\""
     fi
@@ -50,7 +54,6 @@ if [[ -v clf ]]; then
     ;;
   esac
 fi
-
 
 echo "$evaluate_command"
 eval "$evaluate_command"

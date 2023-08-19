@@ -71,7 +71,7 @@ def _run_task(parsed_args: dict):
 
 def _add_subparser_for_get_entity_embeddings(subparsers):
     get_entity_embeddings_parser = subparsers.add_parser(Tasks.GET_ENTITY_EMBEDDINGS.value)
-    get_entity_embeddings_parser.add_argument('--method', type=str, default=EntityEmbeddingMethod.STARSPACE.value,
+    get_entity_embeddings_parser.add_argument('--method', type=str, default=EntityEmbeddingMethod.WORD2VEC.value,
                                               choices=[v.value for v in EntityEmbeddingMethod],
                                               help='Method of generating entity embeddings')
     get_entity_embeddings_parser.add_argument('--train-data-path', type=file_path, required=True,
@@ -137,6 +137,8 @@ def _add_subparser_for_get_train_test_split(subparsers):
     train_test_split_parser.add_argument('--output-dir', type=dir_path, default='.',
                                          help='Path to directory in which to save the resulting files containing the'
                                               ' training and test data')
+    train_test_split_parser.add_argument('--train-suffix', type=str, default='train', help='Suffix to apply to the train file')
+    train_test_split_parser.add_argument('--test-suffix', type=str, default='test', help='Suffix to apply to the test file')
 
 
 def _add_subparser_for_evaluate_embeddings_model(subparsers):
@@ -249,8 +251,14 @@ def _task_train_cnn_model(parsed_args: dict):
 
 
 def _task_train_test_split(parsed_args: dict):
-    get_train_test_split(parsed_args['data_path'], parsed_args['output_dir'], parsed_args['train_size'],
-                         not parsed_args['no_stratify'])
+    get_train_test_split(
+        data_path=parsed_args['data_path'],
+        output_dir=parsed_args['output_dir'],
+        train_size=parsed_args['train_size'],
+        stratify=not parsed_args['no_stratify'],
+        train_suffix=parsed_args['train_suffix'],
+        test_suffix=parsed_args['test_suffix']
+    )
 
 
 def _task_evaluate_embeddings_model(parsed_args: dict):
