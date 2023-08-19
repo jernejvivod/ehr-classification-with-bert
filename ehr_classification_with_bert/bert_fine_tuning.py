@@ -88,7 +88,7 @@ def fine_tune_bert(model_type: str,
 
             outputs = model(**{k: v.to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v
                                for k, v in batch.items()})
-            loss = outputs.loss if hasattr(outputs, 'loss') else loss_fn(outputs, batch['labels'])
+            loss = outputs.loss if hasattr(outputs, 'loss') else loss_fn(outputs, batch['labels'].to(device))
 
             loss.backward()
             optimizer.step()

@@ -1,9 +1,11 @@
 import torch
 import torch.nn as nn
 
+from ehr_classification_with_bert import device
+
 
 class EnsembleBertModel(nn.Module):
-    def __init__(self, bert_model, emb_model, hidden_size=32, freeze_emb_model=True):
+    def __init__(self, bert_model, emb_model, hidden_size=2048, freeze_emb_model=True):
         """Ensemble model combining BERT and an embedding model that takes in text/documents and produces their
         embeddings. The BERT's last CLS token hidden state is concatenated with the feature vector produced by the
         embedding model. A series of fully-connected layers is then applied to perform classification.
@@ -24,6 +26,7 @@ class EnsembleBertModel(nn.Module):
 
         self.relu = nn.ReLU(inplace=True)
 
+        # TODO study replacing with just a single linear layer
         self.classifier = nn.Sequential(
             nn.Dropout(p=0.5),
             nn.Linear(self.bert_model.config.hidden_size + self.emb_model.vector_size, hidden_size),
@@ -47,7 +50,7 @@ class EnsembleBertModel(nn.Module):
         bert_cls_embeddings = bert_output.hidden_states[-1][:, 0, :]
 
         # get embeddings model text embedding
-        emb_model_embeddings = torch.Tensor(self.emb_model([ex.split(' ') for ex in related_data_text]))
+        emb_model_embeddings = torch.Tensor(self.emb_model([ex.split(' ') for ex in related_data_text])).to(device)
 
         # get concatenated feature vector
         feature_vector = torch.cat((bert_cls_embeddings, emb_model_embeddings), dim=1)
