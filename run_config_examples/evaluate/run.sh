@@ -17,34 +17,48 @@ if [[ -z "$data_file_path" ]]; then
   exit 1
 fi
 
+if [[ -z "$n_labels" ]]; then
+  echo "Error: number of unique labels should be specified in config file."
+  exit 1
+fi
+
+if [[ -z "$unique_labels" ]]; then
+  echo "Error: unique labels should be specified in config file."
+  exit 1
+fi
+
+if [[ -z "$class_names" ]]; then
+  echo "Error: class names should be specified in config file."
+  exit 1
+fi
+
 # fine-tune
 evaluate_command="python3 $script_path/../../ehr_classification_with_bert \
           evaluate \
           --data-file-path $data_file_path \
           --model-path $model_path \
+          --n-labels $n_labels \
+          --unique-labels $unique_labels \
+          --class-names $class_names \
           --results-path $output_dir "
 
-if [[ -v n_labels ]]; then
-  evaluate_command+="--n-labels $n_labels "
-fi
-
-if [[ -v batch_size ]]; then
+if [[ -n "$batch_size" ]]; then
   evaluate_command+="--batch-size $batch_size "
 fi
 
-if [[ -v truncate_dataset_to ]]; then
+if [[ -n "$truncate_dataset_to" ]]; then
   evaluate_command+="--truncate-dataset-to $truncate_dataset_to "
 fi
 
-if [[ -v segmented && "$segmented" == "true" ]]; then
+if [[ -n "$segmented" && "$segmented" == "true" ]]; then
   evaluate_command+="--segmented "
 fi
 
-if [[ -v unique_labels ]]; then
+if [[ -n "$unique_labels" ]]; then
   evaluate_command+="--unique-labels $unique_labels "
 fi
 
-if [[ -v class_names ]]; then
+if [[ -n "$class_names" ]]; then
   evaluate_command+="--class-names $class_names "
 fi
 

@@ -1,10 +1,7 @@
-import os
-
 import torch
 import torch.nn.functional as nnf
 from classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix, \
     plot_roc
-from evaluate import EvaluationModule
 from sklearn import metrics
 from torch.utils.data import DataLoader
 
@@ -16,7 +13,7 @@ def evaluate_model(model, eval_dataloader: DataLoader, unique_labels, class_name
     """Evaluate model on test data.
 
     :param model: Model to evaluate
-    :param eval_dataloader: DataLoader for training data
+    :param eval_dataloader: DataLoader for test data
     :param unique_labels: Unique labels present in the dataset
     :param class_names: Names associated with the labels (in same order as the values specified for unique_labels)
     :param results_path: Path to directory in which to store the results
@@ -31,7 +28,6 @@ def evaluate_model(model, eval_dataloader: DataLoader, unique_labels, class_name
     y_true = torch.empty(0, dtype=torch.int64).to(device)
 
     for batch in eval_dataloader:
-
         # compute prediction
         with torch.no_grad():
             outputs = model(**{k: v.to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v
@@ -73,7 +69,6 @@ def evaluate_model_segmented(model, eval_dataloader: DataLoader, unique_labels, 
     y_true = torch.empty(0, dtype=torch.int64).to(device)
 
     for batch in eval_dataloader:
-
         # compute prediction
         with torch.no_grad():
             outputs = model(**{k: v[0].to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v
@@ -118,4 +113,6 @@ def evaluate_predictions(predicted_proba: torch.tensor,
     # visualize confusion matrix
     plot_confusion_matrix(y_pred.tolist(), y_true.tolist(), unique_labels, class_names, results_path, model_name)
     if len(unique_labels) == 2:
-        plot_roc(predicted_proba.numpy(), y_true.tolist(), unique_labels[1], results_path, model_name)
+        plot_roc(predicted_proba.cpu().numpy(), y_true.tolist(), unique_labels[1], results_path, model_name)
+
+    # TODO save evaluation data as in classification-with-embeddings

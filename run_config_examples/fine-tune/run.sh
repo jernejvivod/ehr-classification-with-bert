@@ -16,57 +16,59 @@ if [[ -z "$data_file_path" ]]; then
   exit 1
 fi
 
+if [[ -z "$n_labels" ]]; then
+  echo "Error: number of unique labels should be specified in config file."
+  exit 1
+fi
+
 # fine-tune
 fine_tune_command="python3 $script_path/../../ehr_classification_with_bert \
           fine-tune \
           --data-file-path $data_file_path \
+          --n-labels $n_labels \
           --model-save-path $output_dir "
 
-if [[ -v model_type ]]; then
+if [[ -n "$model_type" ]]; then
   fine_tune_command+="--model-type $model_type "
 fi
 
-if [[ -v emb_model_path ]]; then
+if [[ -n "$emb_model_path" ]]; then
   fine_tune_command+="--emb-model-path $emb_model_path "
 fi
 
-if [[ -v hidden_size ]]; then
+if [[ -n "$hidden_size" ]]; then
   fine_tune_command+="--hidden-size $hidden_size "
 fi
 
-if [[ -v n_labels ]]; then
-  fine_tune_command+="--n-labels $n_labels "
-fi
-
-if [[ -v base_bert_model ]]; then
+if [[ -n "$base_bert_model" ]]; then
   fine_tune_command+="--base-bert-model $base_bert_model "
 fi
 
-if [[ -v freeze_emb_model && "$freeze_emb_model" == "true" ]]; then
+if [[ -n "$freeze_emb_model" && "$freeze_emb_model" == "true" ]]; then
   fine_tune_command+="--freeze-emb-model "
 fi
 
-if [[ -v n_epochs ]]; then
+if [[ -n "$n_epochs" ]]; then
   fine_tune_command+="--n-epochs $n_epochs "
 fi
 
-if [[ -v batch_size ]]; then
+if [[ -n "$batch_size" ]]; then
   fine_tune_command+="--batch-size $batch_size "
 fi
 
-if [[ -v truncate_dataset_to ]]; then
+if [[ -n "$truncate_dataset_to" ]]; then
   fine_tune_command+="--truncate-dataset-to $truncate_dataset_to "
 fi
 
-if [[ -v split_long_examples && "$split_long_examples" == "true" ]]; then
+if [[ -n "$split_long_examples" && "$split_long_examples" == "true" ]]; then
   fine_tune_command+="--split-long-examples "
 fi
 
-if [[ -v emb_model_method ]]; then
+if [[ -n "$emb_model_method" ]]; then
   fine_tune_command+="--emb-model-method $emb_model_method "
 fi
 
-if [[ -v emb_model_args ]]; then
+if [[ -n "$emb_model_args" ]]; then
   fine_tune_command+="--emb-model-args $emb_model_args "
 fi
 
