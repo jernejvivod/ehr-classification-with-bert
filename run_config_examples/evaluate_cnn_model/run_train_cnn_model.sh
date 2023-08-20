@@ -65,7 +65,7 @@ if [[ -n "$n_filter_channels" ]]; then
 fi
 
 if [[ -n "$hidden_size" ]]; then
-  train_command+="--hidden_size $hidden_size "
+  train_command+="--hidden-size $hidden_size "
 fi
 
 echo "$train_command"
