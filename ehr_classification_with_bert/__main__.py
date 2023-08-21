@@ -50,10 +50,23 @@ def _run_task(parsed_args: dict):
             group_splits=False
         )
 
+        val_dataloader = None
+        if parsed_args['val_file_path'] is not None:
+            val_dataloader = _util.get_dataloader(
+                data_file_path=parsed_args['val_file_path'],
+                n_labels=parsed_args['n_labels'],
+                batch_size=parsed_args['batch_size'],
+                truncate_dataset_to=None,
+                split_above_tokens_limit=parsed_args['split_long_examples'],
+                group_splits=False
+            )
+
         fine_tune_bert(
             model_type=parsed_args['model_type'],
             train_dataloader=train_dataloader,
+            val_dataloader=val_dataloader,
             n_labels=parsed_args['n_labels'],
+            eval_every_steps=parsed_args['eval_every_steps'],
             base_bert_model=parsed_args['base_bert_model'],
             hidden_size=parsed_args['hidden_size'],
             freeze_emb_model=parsed_args['freeze_emb_model'],
@@ -109,6 +122,9 @@ def _add_subparsers_for_fine_tune(subparsers):
     fine_tune_parser.add_argument('--data-file-path', type=argparse_type_file_path, required=True, nargs='+',
                                   action=UnnestSingletonListElement,
                                   help='Path to file containing the fine-tuning data.')
+    fine_tune_parser.add_argument('--val-file-path', type=argparse_type_file_path, nargs='+',
+                                  action=UnnestSingletonListElement,
+                                  help='Path to file containing the validation data.')
     fine_tune_parser.add_argument('--model-type', type=str, choices=[v.value for v in ModelType],
                                   default=ModelType.BERT_ONLY.value, help='Model type to use')
     fine_tune_parser.add_argument('--emb-model-path', type=_util.argparse_type_file_path,
@@ -117,6 +133,8 @@ def _add_subparsers_for_fine_tune(subparsers):
                                   help='Size of hidden layers in the classifier used in the ensemble model.')
     fine_tune_parser.add_argument('--n-labels', type=_util.argparse_type_positive_int, required=True,
                                   help='Number of unique labels in the dataset.')
+    fine_tune_parser.add_argument('--eval-every-steps', type=_util.argparse_type_positive_int, default=1000,
+                                  help='Perform evaluation on validation data every specified number of steps')
     fine_tune_parser.add_argument('--base-bert-model', type=str, default='bert-base-cased',
                                   help='Base BERT model to use.')
     fine_tune_parser.add_argument('--freeze-emb-model', action='store_true',

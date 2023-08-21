@@ -10,6 +10,7 @@ output_dir="$script_path/results"
 source "$script_path/config/config.cfg"
 
 data_file_path=$(find "$script_path/data/" -name '*train.txt' | sort | tr '\n' ' ')
+val_file_path=$(find "$script_path/data/" -name '*val.txt' | sort | tr '\n' ' ')
 
 if [[ -z "$data_file_path" ]]; then
   echo "Error: no train data file found in data directory."
@@ -25,8 +26,18 @@ fi
 fine_tune_command="python3 $script_path/../../ehr_classification_with_bert \
           fine-tune \
           --data-file-path $data_file_path \
+          --val-file-path $val_file_path \
           --n-labels $n_labels \
+          --eval-every-steps 3 \
           --model-save-path $output_dir "
+
+if [[ -n "$val_file_path" ]]; then
+  fine_tune_command+="--val-file-path $val_file_path "
+fi
+
+if [[ -n "$eval_every_steps" ]]; then
+  fine_tune_command+="--eval-every-steps $eval_every_steps "
+fi
 
 if [[ -n "$model_type" ]]; then
   fine_tune_command+="--model-type $model_type "
