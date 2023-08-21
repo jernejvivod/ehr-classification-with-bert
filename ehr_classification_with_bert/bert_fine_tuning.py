@@ -17,7 +17,9 @@ from ehr_classification_with_bert.model.ensemble_bert_model import EnsembleBertM
 
 def fine_tune_bert(model_type: str,
                    train_dataloader: DataLoader,
+                   val_dataloader: DataLoader,
                    n_labels: int,
+                   eval_every_steps=500,
                    base_bert_model: str = 'bert-base-cased',
                    hidden_size: int = 32,
                    freeze_emb_model: bool = False,
@@ -33,7 +35,9 @@ def fine_tune_bert(model_type: str,
     :param model_type: Type of model to use. Valid values are 'bert' for a BERT-only model, 'ensemble-embeddings' for a
     BERT with aggregate embeddings ensemble, and 'ensemble-cnn' for a BERT with CNN-based embeddings ensemble
     :param train_dataloader: DataLoader for training data
+    :param val_dataloader: DataLoader for validation data
     :param n_labels: Number of unique labels in the dataset
+    :param eval_every_steps: Perform evaluation on validation data every specified number of steps
     :param base_bert_model: Base BERT model to use
     :param hidden_size: Size of the hidden layers in the classifier (if using ensemble model)
     :param freeze_emb_model: Freeze the ensembled model during fine-tuning
@@ -59,7 +63,7 @@ def fine_tune_bert(model_type: str,
         n_labels=n_labels,
         hidden_size=hidden_size,
         freeze_emb_model=freeze_emb_model,
-        emb_model_train_data_path=train_data_path if isinstance(train_data_path, str) else train_data_path[1], # pass second dataset if multiple datasets used
+        emb_model_train_data_path=train_data_path if isinstance(train_data_path, str) else train_data_path[1],  # pass second dataset if multiple datasets used
         emb_model_path=emb_model_path,
         emb_model_method=emb_model_method,
         emb_model_args=emb_model_args,
@@ -72,13 +76,14 @@ def fine_tune_bert(model_type: str,
     logger.info('Fine-tuning will take %d training steps.', num_training_steps)
 
     # initialize optimizer ands learning rate sheduler
-    optimizer = AdamW(model.parameters(), lr=5e-5)
-    lr_scheduler = get_scheduler(
-        name='linear', optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
+    optimizer = AdamW(model.parameters(), lr=2e-5, weight_decay=1e-3)
+    lr_scheduler = get_scheduler(   
+        name='linear', optimizer=optimizer, num_warmup_steps=int(0.1*num_training_steps), num_training_steps=num_training_steps
     )
 
     # train model
     model.train()
+    step_count = 0
 
     loss_fn = nn.CrossEntropyLoss()
 
@@ -91,16 +96,46 @@ def fine_tune_bert(model_type: str,
             loss = outputs.loss if hasattr(outputs, 'loss') else loss_fn(outputs, batch['labels'].to(device))
 
             loss.backward()
+
+            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+
             optimizer.step()
             lr_scheduler.step()
             optimizer.zero_grad()
 
             progress_bar.update(1)
 
+            # validate_model model every N steps
+            if val_dataloader and (step_count + 1) % eval_every_steps == 0:
+                validate_model(model, batch)
+
+            step_count += 1
+
     saved_model_path = os.path.join(model_save_path, 'trained_model.pth')
 
     logger.info('Saving fine-tuned model to %s', os.path.abspath(saved_model_path))
     torch.save(model, saved_model_path)
+
+
+def validate_model(model: nn.Module, batch):
+    print('\nPerforming validation on the training set.')
+
+    # model will be evaluated
+    model.eval()
+
+    # initialize loss function
+    loss_fn = nn.CrossEntropyLoss()
+
+
+    with torch.no_grad():
+        outputs = model(**{k: v.to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v
+                            for k, v in batch.items()})
+        loss = outputs.loss if hasattr(outputs, 'loss') else loss_fn(outputs, batch['labels'].to(device))
+
+        print("Validation Loss: {0:.4f}".format(loss))
+
+    # model will continue to be trained
+    model.train()
 
 
 class ModelType(Enum):
