@@ -19,8 +19,8 @@ def fine_tune_bert(model_type: str,
                    train_dataloader: DataLoader,
                    val_dataloader: DataLoader,
                    n_labels: int,
-                   eval_every_steps=1000,
-                   step_lim=5000,
+                   eval_every_steps=None,
+                   step_lim=None,
                    base_bert_model: str = 'bert-base-cased',
                    hidden_size: int = 32,
                    freeze_emb_model: bool = False,
@@ -110,7 +110,7 @@ def fine_tune_bert(model_type: str,
             optimizer.zero_grad()
 
             # compute validation loss model every N steps and save model if best yet
-            if val_dataloader and (step_count + 1) % eval_every_steps == 0:
+            if val_dataloader and eval_every_steps and (step_count + 1) % eval_every_steps == 0:
                 compute_validation_loss_and_save_best_model(model, val_dataloader, val_loss_history, model_save_path)
 
             # TODO script parameter to control how often

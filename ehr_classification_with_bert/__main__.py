@@ -134,9 +134,9 @@ def _add_subparsers_for_fine_tune(subparsers):
                                   help='Size of hidden layers in the classifier used in the ensemble model.')
     fine_tune_parser.add_argument('--n-labels', type=_util.argparse_type_positive_int, required=True,
                                   help='Number of unique labels in the dataset.')
-    fine_tune_parser.add_argument('--eval-every-steps', type=_util.argparse_type_positive_int, default=1000,
+    fine_tune_parser.add_argument('--eval-every-steps', type=_util.argparse_type_positive_int,
                                   help='Perform evaluation on validation data every specified number of steps')
-    fine_tune_parser.add_argument('--step-lim', type=_util.argparse_type_positive_int, default=5000,
+    fine_tune_parser.add_argument('--step-lim', type=_util.argparse_type_positive_int,
                                   help='Maximum number of training steps to perform.')
     fine_tune_parser.add_argument('--base-bert-model', type=str, default='bert-base-cased',
                                   help='Base BERT model to use.')
