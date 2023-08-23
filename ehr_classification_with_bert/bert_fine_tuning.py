@@ -152,7 +152,7 @@ def compute_batch_training_loss(model: nn.Module, batch) -> None:
                            for k, v in batch.items()})
         loss = outputs.loss if hasattr(outputs, 'loss') else loss_fn(outputs, batch['labels'].to(device))
 
-        print("Batch training Loss: {0:.4f}".format(loss))
+        print("\nBatch training Loss: {0:.4f}".format(loss))
 
     # model will continue to be trained
     model.train()
@@ -167,7 +167,7 @@ def compute_validation_loss_and_save_best_model(model: nn.Module, val_dataloader
     :param model_save_path: Path to directory in which to save the fine-tuned model
     """
 
-    print('\nPerforming validation on the training set.')
+    print('\nEvaluating model on the validation set.')
 
     # model will be evaluated
     model.eval()
