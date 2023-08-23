@@ -67,6 +67,7 @@ def _run_task(parsed_args: dict):
             val_dataloader=val_dataloader,
             n_labels=parsed_args['n_labels'],
             eval_every_steps=parsed_args['eval_every_steps'],
+            step_lim=parsed_args['step_lim'],
             base_bert_model=parsed_args['base_bert_model'],
             hidden_size=parsed_args['hidden_size'],
             freeze_emb_model=parsed_args['freeze_emb_model'],
@@ -135,6 +136,8 @@ def _add_subparsers_for_fine_tune(subparsers):
                                   help='Number of unique labels in the dataset.')
     fine_tune_parser.add_argument('--eval-every-steps', type=_util.argparse_type_positive_int, default=1000,
                                   help='Perform evaluation on validation data every specified number of steps')
+    fine_tune_parser.add_argument('--step-lim', type=_util.argparse_type_positive_int, default=5000,
+                                  help='Maximum number of training steps to perform.')
     fine_tune_parser.add_argument('--base-bert-model', type=str, default='bert-base-cased',
                                   help='Base BERT model to use.')
     fine_tune_parser.add_argument('--freeze-emb-model', action='store_true',

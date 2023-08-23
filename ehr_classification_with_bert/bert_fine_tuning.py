@@ -19,7 +19,8 @@ def fine_tune_bert(model_type: str,
                    train_dataloader: DataLoader,
                    val_dataloader: DataLoader,
                    n_labels: int,
-                   eval_every_steps=500,
+                   eval_every_steps=1000,
+                   step_lim=5000,
                    base_bert_model: str = 'bert-base-cased',
                    hidden_size: int = 32,
                    freeze_emb_model: bool = False,
@@ -38,6 +39,7 @@ def fine_tune_bert(model_type: str,
     :param val_dataloader: DataLoader for validation data
     :param n_labels: Number of unique labels in the dataset
     :param eval_every_steps: Perform evaluation on validation data every specified number of steps
+    :param step_lim: Maximum number of training steps to perform
     :param base_bert_model: Base BERT model to use
     :param hidden_size: Size of the hidden layers in the classifier (if using ensemble model)
     :param freeze_emb_model: Freeze the ensembled model during fine-tuning
@@ -76,9 +78,9 @@ def fine_tune_bert(model_type: str,
     logger.info('Fine-tuning will take %d training steps.', num_training_steps)
 
     # initialize optimizer ands learning rate sheduler
-    optimizer = AdamW(model.parameters(), lr=2e-5, weight_decay=1e-3)
-    lr_scheduler = get_scheduler(   
-        name='linear', optimizer=optimizer, num_warmup_steps=int(0.1*num_training_steps), num_training_steps=num_training_steps
+    optimizer = AdamW(model.parameters(), lr=2e-5, weight_decay=1e-3)  # TODO lr as parameter
+    lr_scheduler = get_scheduler(
+        name='linear', optimizer=optimizer, num_warmup_steps=int(0.1 * num_training_steps), num_training_steps=num_training_steps  # TODO warmup steps as parameter
     )
 
     # train model
@@ -86,6 +88,9 @@ def fine_tune_bert(model_type: str,
     step_count = 0
 
     loss_fn = nn.CrossEntropyLoss()
+
+    # initialize list for appending validation set loss history
+    val_loss_history = []
 
     progress_bar = tqdm(range(num_training_steps))
     for epoch in range(n_epochs):
@@ -97,27 +102,71 @@ def fine_tune_bert(model_type: str,
 
             loss.backward()
 
+            # TODO script parameter
             nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
             optimizer.step()
             lr_scheduler.step()
             optimizer.zero_grad()
 
-            progress_bar.update(1)
-
-            # validate_model model every N steps
+            # compute validation loss model every N steps and save model if best yet
             if val_dataloader and (step_count + 1) % eval_every_steps == 0:
-                validate_model(model, batch)
+                compute_validation_loss_and_save_best_model(model, val_dataloader, val_loss_history, model_save_path)
+
+            # TODO script parameter to control how often
+            if (step_count + 1) % 10 == 0:
+                compute_batch_training_loss(model, batch)
 
             step_count += 1
+            progress_bar.update(1)
 
-    saved_model_path = os.path.join(model_save_path, 'trained_model.pth')
+            # if step limit set and reached, save model and finish
+            if step_lim is not None and step_count >= step_lim:
+                save_model(model, model_save_path)
+                return
 
-    logger.info('Saving fine-tuned model to %s', os.path.abspath(saved_model_path))
+    save_model(model, model_save_path)
+
+
+def save_model(model: nn.Module, model_save_path: str):
+    saved_model_path = os.path.join(model_save_path, 'trained_model_final.pth')
+    logger.info('Saving final fine-tuned model to %s', os.path.abspath(saved_model_path))
     torch.save(model, saved_model_path)
 
 
-def validate_model(model: nn.Module, batch):
+def compute_batch_training_loss(model: nn.Module, batch) -> None:
+    """Compute batch training loss for model.
+
+    :param model: Model being trained
+    :param batch: Batch on which to evaluate the model
+    """
+
+    # model will be evaluated
+    model.eval()
+
+    # initialize loss function
+    loss_fn = nn.CrossEntropyLoss()
+
+    with torch.no_grad():
+        outputs = model(**{k: v.to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v
+                           for k, v in batch.items()})
+        loss = outputs.loss if hasattr(outputs, 'loss') else loss_fn(outputs, batch['labels'].to(device))
+
+        print("Batch training Loss: {0:.4f}".format(loss))
+
+    # model will continue to be trained
+    model.train()
+
+
+def compute_validation_loss_and_save_best_model(model: nn.Module, val_dataloader: DataLoader, val_loss_history: List[float], model_save_path: str):
+    """Compute validation set loss, store it in list representing the validation set loss history and save model if validation loss lowest yet.
+
+    :param model: Model to evaluate
+    :param val_dataloader: DataLoader for validation data
+    :param val_loss_history: List containing current validation set loss history
+    :param model_save_path: Path to directory in which to save the fine-tuned model
+    """
+
     print('\nPerforming validation on the training set.')
 
     # model will be evaluated
@@ -126,13 +175,27 @@ def validate_model(model: nn.Module, batch):
     # initialize loss function
     loss_fn = nn.CrossEntropyLoss()
 
+    # initialize accumulators
+    validation_loss_acc = 0.0
 
     with torch.no_grad():
-        outputs = model(**{k: v.to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v
-                            for k, v in batch.items()})
-        loss = outputs.loss if hasattr(outputs, 'loss') else loss_fn(outputs, batch['labels'].to(device))
+        for batch in val_dataloader:
+            outputs = model(**{k: v.to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v
+                               for k, v in batch.items()})
+            loss = outputs.loss if hasattr(outputs, 'loss') else loss_fn(outputs, batch['labels'].to(device))
+            validation_loss_acc += loss
 
-        print("Validation Loss: {0:.4f}".format(loss))
+    # compute average validation loss and accuracy
+    average_loss = validation_loss_acc / len(val_dataloader)
+
+    print('Validation Loss: {0:.4f}'.format(average_loss))
+
+    val_loss_history.append(average_loss)
+    if average_loss == min(val_loss_history):
+        print('Model has lowest validation loss so far. Saving.')
+        saved_model_path = os.path.join(model_save_path, 'lowest_val_loss_model.pth')
+        logger.info('Saving model to %s', os.path.abspath(saved_model_path))
+        torch.save(model, saved_model_path)
 
     # model will continue to be trained
     model.train()

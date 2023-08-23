@@ -26,9 +26,7 @@ fi
 fine_tune_command="python3 $script_path/../../ehr_classification_with_bert \
           fine-tune \
           --data-file-path $data_file_path \
-          --val-file-path $val_file_path \
           --n-labels $n_labels \
-          --eval-every-steps 3 \
           --model-save-path $output_dir "
 
 if [[ -n "$val_file_path" ]]; then
