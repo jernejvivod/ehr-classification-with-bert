@@ -71,11 +71,9 @@ def evaluate_model_segmented(model, eval_dataloader: DataLoader, unique_labels, 
     for batch in eval_dataloader:
         # compute prediction
         with torch.no_grad():
-            outputs = model(**{k: v[0].to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v
-                               for k, v in batch.items()})
+            logits = todo(model, batch)
 
         # accumulate values
-        logits = outputs.logits if hasattr(outputs, 'logits') else outputs
         mean_logits_for_segments = torch.mean(logits, dim=0)  # compute mean logits for segments
         y_proba_nxt = nnf.softmax(mean_logits_for_segments, dim=0).unsqueeze(dim=0)
         predicted_proba = torch.cat((predicted_proba, y_proba_nxt), dim=0)
@@ -84,6 +82,21 @@ def evaluate_model_segmented(model, eval_dataloader: DataLoader, unique_labels, 
     # evaluate computed predictions and produce plots
     model_name = 'BERT' if not isinstance(model, EnsembleBertModel) else 'BERT_ENSEMBLE'
     evaluate_predictions(predicted_proba, y_true, unique_labels, class_names, model_name, results_path)
+
+
+def todo(model, batch):
+    batch_split = {k: torch.split(v[0], 16, 0) for k, v in batch.items()}
+    n_chunks = len(next(iter(batch_split.values())))
+    batch_chunks = tuple({key: values[i] for key, values in batch_split.items()} for i in range(n_chunks))
+
+    logits = torch.empty((0, 2)).to(device)
+    for chunk in batch_chunks:
+        chunk_outputs = model(**{k: v.to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v for k, v in chunk.items()})
+        chunk_logits = chunk_outputs.logits if hasattr(chunk_outputs, 'logits') else chunk_outputs
+        logits = torch.cat((logits, chunk_logits), dim=0)
+
+    return logits
+
 
 
 def evaluate_predictions(predicted_proba: torch.tensor,
