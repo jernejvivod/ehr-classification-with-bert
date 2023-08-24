@@ -4,6 +4,7 @@ from classification_with_embeddings.evaluation.visualization import write_classi
     plot_roc
 from sklearn import metrics
 from torch.utils.data import DataLoader
+from tqdm.auto import tqdm
 
 from ehr_classification_with_bert import device, logger
 from ehr_classification_with_bert.model.ensemble_bert_model import EnsembleBertModel
@@ -27,6 +28,7 @@ def evaluate_model(model, eval_dataloader: DataLoader, unique_labels, class_name
     predicted_proba = torch.empty((0, 2)).to(device)
     y_true = torch.empty(0, dtype=torch.int64).to(device)
 
+    progress_bar = tqdm(range(len(eval_dataloader)))
     for batch in eval_dataloader:
         # compute prediction
         with torch.no_grad():
@@ -38,6 +40,8 @@ def evaluate_model(model, eval_dataloader: DataLoader, unique_labels, class_name
         y_proba_nxt = nnf.softmax(logits, dim=1)
         predicted_proba = torch.cat((predicted_proba, y_proba_nxt), dim=0)
         y_true = torch.cat((y_true, batch['labels'].to(device)))
+
+        progress_bar.update(1)
 
     # evaluate computed predictions and produce plots
     model_name = 'BERT' if not isinstance(model, EnsembleBertModel) else 'BERT_ENSEMBLE'
@@ -68,6 +72,8 @@ def evaluate_model_segmented(model, eval_dataloader: DataLoader, unique_labels, 
     predicted_proba = torch.empty((0, 2)).to(device)
     y_true = torch.empty(0, dtype=torch.int64).to(device)
 
+    progress_bar = tqdm(range(len(eval_dataloader)))
+
     for batch in eval_dataloader:
         # compute prediction
         with torch.no_grad():
@@ -78,6 +84,8 @@ def evaluate_model_segmented(model, eval_dataloader: DataLoader, unique_labels, 
         y_proba_nxt = nnf.softmax(mean_logits_for_segments, dim=0).unsqueeze(dim=0)
         predicted_proba = torch.cat((predicted_proba, y_proba_nxt), dim=0)
         y_true = torch.cat((y_true, batch['labels'][0][0].view(1).to(device)))
+
+        progress_bar.update(1)
 
     # evaluate computed predictions and produce plots
     model_name = 'BERT' if not isinstance(model, EnsembleBertModel) else 'BERT_ENSEMBLE'
