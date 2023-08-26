@@ -66,7 +66,12 @@ def get_dataloader(data_file_path: Union[str, List[str]],
     tokenization_truncation = not split_above_tokens_limit
 
     # tokenize dataset
-    tokenizer = AutoTokenizer.from_pretrained('dmis-lab/biobert-base-cased-v1.2', model_max_length=512, lowercase=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        'dmis-lab/biobert-base-cased-v1.2',
+        model_max_length=512,
+        lowercase=True,
+        truncation_side='left'
+    )
     tokenized_datasets = dataset.map(
         lambda example: tokenizer(example['text'], padding=tokenization_padding, truncation=tokenization_truncation),
         batched=True,

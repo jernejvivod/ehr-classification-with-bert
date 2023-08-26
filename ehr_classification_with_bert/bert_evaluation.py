@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as nnf
 from classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix, \
     plot_roc
+from classification_with_embeddings.evaluation.util import write_evaluation_prediction_data_to_file
 from sklearn import metrics
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
@@ -136,4 +137,11 @@ def evaluate_predictions(predicted_proba: torch.tensor,
     if len(unique_labels) == 2:
         plot_roc(predicted_proba.cpu().numpy(), y_true.tolist(), unique_labels[1], results_path, model_name)
 
-    # TODO save evaluation data as in classification-with-embeddings
+    write_evaluation_prediction_data_to_file(
+        'BERT',
+        results_path,
+        y_pred.tolist(),
+        predicted_proba.cpu().numpy(),
+        y_true.toList(),
+        class_names
+    )
