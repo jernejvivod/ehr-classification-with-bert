@@ -9,7 +9,7 @@ from classification_with_embeddings import torch_device
 from classification_with_embeddings.evaluation import logger
 from classification_with_embeddings.evaluation.clf.a_classifier import AClassifier
 from classification_with_embeddings.evaluation.util import _fasttext_data_to_x_y, _fasttext_data_to_x_y_multiple, \
-    _write_evaluation_prediction_data_to_file
+    write_evaluation_prediction_data_to_file
 from classification_with_embeddings.evaluation.visualization import write_classification_report, plot_confusion_matrix, \
     plot_roc
 
@@ -53,7 +53,8 @@ def evaluate_embeddings_model(clf: AClassifier,
         logger.info('Saving ROC plot.')
         plot_roc(y_proba, y_true, clf.classes()[1], results_path, method_name)
 
-    _write_evaluation_prediction_data_to_file(
+    # write evaluation data to file
+    write_evaluation_prediction_data_to_file(
         method,
         results_path,
         y_pred.tolist(),
@@ -119,7 +120,8 @@ def evaluate_cnn_model(model: torch.nn.Module,
         predicted_proba_numpy = predicted_proba.cpu().numpy()
         plot_roc(predicted_proba_numpy, y_true.tolist(), unique_labels[1], results_path, 'CNN')
 
-    _write_evaluation_prediction_data_to_file(
+    # write evaluation data to file
+    write_evaluation_prediction_data_to_file(
         'CNN',
         results_path,
         y_pred.tolist(),

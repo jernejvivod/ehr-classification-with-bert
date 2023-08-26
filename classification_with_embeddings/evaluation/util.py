@@ -61,12 +61,12 @@ def _fasttext_data_to_x_y_multiple(data_paths: Iterable[str]) -> Tuple[List[List
     return xs_trans, ys[0]
 
 
-def _write_evaluation_prediction_data_to_file(method: str,
-                                              results_path: str,
-                                              y_pred: list = None,
-                                              scores: list = None,
-                                              y_true: list = None,
-                                              labels: list = None):
+def write_evaluation_prediction_data_to_file(method: str,
+                                             results_path: str,
+                                             y_pred: list = None,
+                                             scores: list = None,
+                                             y_true: list = None,
+                                             labels: list = None):
     """Write classifier test prediction results to file.
 
     :param method: embedding method(s) used
