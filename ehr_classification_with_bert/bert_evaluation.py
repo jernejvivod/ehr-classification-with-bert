@@ -142,6 +142,6 @@ def evaluate_predictions(predicted_proba: torch.tensor,
         results_path,
         y_pred.tolist(),
         predicted_proba.cpu().numpy(),
-        y_true.toList(),
+        y_true.tolist(),
         class_names
     )
