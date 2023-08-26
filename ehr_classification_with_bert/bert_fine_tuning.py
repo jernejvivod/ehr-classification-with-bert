@@ -110,8 +110,13 @@ def fine_tune_bert(model_type: str,
             optimizer.zero_grad()
 
             # compute validation loss model every N steps and save model if best yet
-            if val_dataloader and eval_every_steps and (step_count + 1) % eval_every_steps == 0:
+            if False and val_dataloader and eval_every_steps and (step_count + 1) % eval_every_steps == 0:
                 compute_validation_loss_and_save_best_model(model, val_dataloader, val_loss_history, model_save_path)
+
+            if eval_every_steps and (step_count + 1) % eval_every_steps == 0:
+                saved_model_path = os.path.join(model_save_path, 'trained_model_{}.pth'.format(step_count))
+                torch.save(model, saved_model_path)
+
 
             # TODO script parameter to control how often
             if (step_count + 1) % 10 == 0:
