@@ -1,3 +1,4 @@
+import gc
 import os.path
 from typing import Optional, List, Union
 
@@ -118,6 +119,9 @@ def train_cnn_model(
                 validate_model(model, val_data_loader)
 
             step_count += 1
+
+            torch.cuda.empty_cache()
+            gc.collect()
 
         scheduler.step()
 
