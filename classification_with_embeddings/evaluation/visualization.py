@@ -38,7 +38,7 @@ def plot_confusion_matrix(predictions: Union[list, np.ndarray],
     :param method: plot file name (embedding method used)
     """
 
-    output_file_path = os.path.abspath(os.path.join(plot_path, method + '_cm' + '.png'))
+    output_file_path = os.path.abspath(os.path.join(plot_path, method + '_cm' + '.svg'))
     logger.info('Saving confusion matrix plot to {0}'.format(output_file_path))
 
     # Plot confusion matrix and save plot.
@@ -54,7 +54,7 @@ def plot_confusion_matrix(predictions: Union[list, np.ndarray],
 
     disp.plot(cmap=plt.cm.Blues)
     plt.tight_layout()
-    plt.savefig(output_file_path)
+    plt.savefig(output_file_path, format='svg', bbox_inches='tight')
     plt.clf()
     plt.close()
 
@@ -69,7 +69,7 @@ def plot_roc(scores: np.ndarray, y_test: list, pos_label, plot_path: str, method
     :param method: plot file name (embedding method used)
     """
 
-    output_file_path = os.path.abspath(os.path.join(plot_path, method + '_roc' + '.png'))
+    output_file_path = os.path.abspath(os.path.join(plot_path, method + '_roc' + '.svg'))
     logger.info('Saving ROC plot to {0}'.format(output_file_path))
 
     # get false positive rates, true positive rates and thresholds
@@ -90,6 +90,6 @@ def plot_roc(scores: np.ndarray, y_test: list, pos_label, plot_path: str, method
     plt.ylabel('True Positive Rate')
 
     plt.legend(loc="lower right")
-    plt.savefig(output_file_path)
+    plt.savefig(output_file_path, format='svg', bbox_inches='tight')
     plt.clf()
     plt.close()

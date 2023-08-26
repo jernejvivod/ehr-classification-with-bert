@@ -13,7 +13,7 @@ def main(argv=None):
         argv = sys.argv
 
     # parse arguments
-    parser = argparse.ArgumentParser(prog='train-test-set-stats')
+    parser = argparse.ArgumentParser(prog='plot-roc-multiple')
     parser.add_argument('--evaluation-data-paths', type=str, required=True, nargs='+',
                         help='Path to evaluation data files as produced by classification-with-embeddings')
     parser.add_argument('--method-names', type=str, required=False, nargs='*',
