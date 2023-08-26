@@ -4,6 +4,7 @@ import torch
 import torch.nn.functional as nnf
 from sklearn import metrics
 from torch.utils.data import DataLoader
+from tqdm.auto import tqdm
 
 from classification_with_embeddings import torch_device
 from classification_with_embeddings.evaluation import logger
@@ -93,6 +94,7 @@ def evaluate_cnn_model(model: torch.nn.Module,
     predicted_proba = torch.empty((0, 2)).to(torch_device)
     y_true = torch.empty(0, dtype=torch.int64).to(torch_device)
 
+    progress_bar = tqdm(range(len(test_data_loader)), desc="Training network", unit=" steps")
     with torch.no_grad():
         for batch in test_data_loader:
             # get inputs and labels for next batch
@@ -102,6 +104,8 @@ def evaluate_cnn_model(model: torch.nn.Module,
             y_proba_nxt = nnf.softmax(model(inputs), dim=1)
             predicted_proba = torch.cat((predicted_proba, y_proba_nxt), dim=0)
             y_true = torch.cat((y_true, labels.to(torch_device)))
+
+            progress_bar.update(1)
 
     # get predictions from probabilities
     y_pred = torch.argmax(predicted_proba, dim=1)
