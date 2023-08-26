@@ -122,8 +122,6 @@ def _add_subparser_for_train_cnn_model(subparsers):
                                         help='Number of channels in filter bank')
     train_cnn_model_parser.add_argument('--hidden-size', type=positive_int, default=32,
                                         help='Size of hidden layers in the classifier')
-    train_cnn_model_parser.add_argument('--eval-every-steps', type=positive_int, default=100,
-                                        help='Perform evaluation on validation data every specified number of steps')
 
 
 def _add_subparser_for_get_train_test_split(subparsers):
@@ -245,8 +243,7 @@ def _task_train_cnn_model(parsed_args: dict):
         min_filter_s=parsed_args['min_filter_s'],
         filter_s_step=parsed_args['filter_s_step'],
         n_filter_channels=parsed_args['n_filter_channels'],
-        hidden_size=parsed_args['hidden_size'],
-        eval_every_steps=parsed_args['eval_every_steps']
+        hidden_size=parsed_args['hidden_size']
     )
 
 

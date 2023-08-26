@@ -115,8 +115,7 @@ class TestMain(unittest.TestCase):
             '--word-embeddings-path', get_relative_path(__file__, 'word2vec_model.tsv'),
             '--n-labels', '2',
             '--val-data-path', get_relative_path(__file__, '../mock_data/test.txt'),
-            '--output-dir', get_relative_path(__file__, '.'),
-            '--eval-every-steps', '10'
+            '--output-dir', get_relative_path(__file__, '.')
         ]
         main(argv_train_cnn_model)
 

@@ -36,7 +36,7 @@ train_command="python3 $script_path/../../classification_with_embeddings \
           --n-labels $n_labels \
           --output-dir $output_dir "
 
-if [[ -f val_data_file ]]; then
+if [[ -f "$val_data_file" ]]; then
   train_command+="--val-data-path $val_data_file "
 fi
 

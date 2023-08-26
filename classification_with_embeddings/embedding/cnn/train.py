@@ -29,8 +29,7 @@ def train_cnn_model(
         min_filter_s=2,
         filter_s_step=1,
         n_filter_channels=2,
-        hidden_size=32,
-        eval_every_steps=100
+        hidden_size=32
 ):
     """Train CNN-based document classification model.
 
@@ -46,7 +45,6 @@ def train_cnn_model(
     :param filter_s_step: Step in filter bank size
     :param n_filter_channels: Number of channels in filter bank
     :param hidden_size: Size of hidden layers in the classifier
-    :param eval_every_steps: Perform evaluation on validation data every specified number of steps
     """
 
     logger.info('Starting training of neural network.')
@@ -92,12 +90,11 @@ def train_cnn_model(
 
     # initialize progress bar
     num_training_steps = n_epochs * len(train_data_loader)
-    progress_bar = tqdm(range(num_training_steps), desc="Training network", unit=" steps")
+    progress_bar = tqdm(range(num_training_steps), desc='Evaluating model', unit=' steps')
 
     # train model
     model.train()
-    step_count = 0
-    for epoch in range(n_epochs):
+    for epoch_idx in range(n_epochs):
         for batch in train_data_loader:
             # get inputs and labels for next batch
             inputs, labels = batch
@@ -114,14 +111,12 @@ def train_cnn_model(
 
             progress_bar.update(1)
 
-            # validate_model model every N steps
-            if val_data_loader and (step_count + 1) % eval_every_steps == 0:
-                validate_model(model, val_data_loader)
-
-            step_count += 1
-
             torch.cuda.empty_cache()
             gc.collect()
+
+        # validate and save model after each epoch
+        if val_data_loader:
+            validate_and_save_model(model, val_data_loader, epoch_idx, output_dir)
 
         scheduler.step()
 
@@ -130,8 +125,16 @@ def train_cnn_model(
     torch.save(model, saved_model_path)
 
 
-def validate_model(model: nn.Module, val_data_loader: DataLoader):
-    print('\nPerforming validation on the training set.')
+def validate_and_save_model(model: nn.Module, val_data_loader: DataLoader, epoch_idx: int, output_dir: str):
+    """Validate model on validation data and save it.
+
+    :param model: Model to evaluate
+    :param val_data_loader: Dataloader for validation data
+    :param epoch_idx: Index of performed epoch
+    :param output_dir: Path to directory in which to save the trained model
+    """
+
+    print('\nPerforming validation on the validation set.')
 
     # model will be evaluated
     model.eval()
@@ -165,6 +168,10 @@ def validate_model(model: nn.Module, val_data_loader: DataLoader):
     accuracy = correct_acc / total_examples
 
     print("Validation Loss: {0:.4f} | Accuracy: {1:.4f}".format(average_loss, accuracy))
+
+    saved_model_path = os.path.join(output_dir, 'trained_cnn_model_epoch_{}.pth'.format(epoch_idx))
+    logger.info('Saving trained model for epoch %s to %s', epoch_idx, os.path.abspath(saved_model_path))
+    torch.save(model, saved_model_path)
 
     # model will continue to be trained
     model.train()
