@@ -10,15 +10,9 @@ output_dir="$script_path/results"
 source "$script_path/config/config_get_entity_embeddings.cfg"
 
 train_data_file=$(find "$script_path/data/" -name '*train.txt' | head -n 1)
-test_data_file=$(find "$script_path/data/" -name '*test.txt' | head -n 1)
 
 if [[ -z "$train_data_file" ]]; then
   echo "Error: no train data file found in data directory."
-  exit 1
-fi
-
-if [[ -z "$test_data_file" ]]; then
-  echo "Error: no test data file found in data directory."
   exit 1
 fi
 

@@ -92,31 +92,41 @@ def train_cnn_model(
     num_training_steps = n_epochs * len(train_data_loader)
     progress_bar = tqdm(range(num_training_steps), desc='Evaluating model', unit=' steps')
 
+    accumulation_steps = 4
+
     # train model
     model.train()
     for epoch_idx in range(n_epochs):
-        for batch in train_data_loader:
+        for batch_idx, batch in enumerate(train_data_loader):
             # get inputs and labels for next batch
             inputs, labels = batch
             labels = labels.to(torch_device)
 
             # compute loss
-            optimizer.zero_grad()
+            # optimizer.zero_grad()
             outputs = model(inputs)
             loss = loss_fn(outputs, labels)
+            loss /= accumulation_steps
 
             # optimize
             loss.backward()
-            optimizer.step()
+
+            if (batch_idx + 1) % accumulation_steps == 0:
+                optimizer.step()
+                optimizer.zero_grad()
+
 
             progress_bar.update(1)
 
             torch.cuda.empty_cache()
             gc.collect()
 
+        if accumulation_steps > 1 and (batch_idx + 1) % accumulation_steps != 0:
+            optimizer.step()
+            optimizer.zero_grad()
+
         # validate and save model after each epoch
-        if val_data_loader:
-            validate_and_save_model(model, val_data_loader, epoch_idx, output_dir)
+        validate_and_save_model(model, val_data_loader, epoch_idx, output_dir)
 
         scheduler.step()
 
@@ -138,36 +148,6 @@ def validate_and_save_model(model: nn.Module, val_data_loader: DataLoader, epoch
 
     # model will be evaluated
     model.eval()
-
-    # initialize loss function
-    loss_fn = nn.CrossEntropyLoss()
-
-    # initialize accumulators
-    validation_loss_acc = 0.0
-    correct_acc = 0
-    total_examples = 0
-
-    with torch.no_grad():
-        for batch in val_data_loader:
-            # get inputs and labels for next batch
-            inputs, labels = batch
-            labels = labels.to(torch_device)
-
-            # compute loss
-            logits = model(inputs)
-            loss = loss_fn(logits, labels)
-            validation_loss_acc += loss.item()
-
-            # compute accuracy
-            predictions = torch.argmax(logits, dim=1)
-            total_examples += labels.size(0)
-            correct_acc += predictions.eq(labels).sum().item()
-
-    # compute average validation loss and accuracy
-    average_loss = validation_loss_acc / len(val_data_loader)
-    accuracy = correct_acc / total_examples
-
-    print("Validation Loss: {0:.4f} | Accuracy: {1:.4f}".format(average_loss, accuracy))
 
     saved_model_path = os.path.join(output_dir, 'trained_cnn_model_epoch_{}.pth'.format(epoch_idx))
     logger.info('Saving trained model for epoch %s to %s', epoch_idx, os.path.abspath(saved_model_path))
