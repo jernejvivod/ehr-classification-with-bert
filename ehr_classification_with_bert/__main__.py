@@ -70,13 +70,16 @@ def _run_task(parsed_args: dict):
             step_lim=parsed_args['step_lim'],
             base_bert_model=parsed_args['base_bert_model'],
             hidden_size=parsed_args['hidden_size'],
+            freeze_bert_model=parsed_args['freeze_bert_model'],
             freeze_emb_model=parsed_args['freeze_emb_model'],
             model_save_path=parsed_args['model_save_path'],
             n_epochs=parsed_args['n_epochs'],
             train_data_path=parsed_args['data_file_path'],
+            bert_model_path=parsed_args['bert_model_path'],
             emb_model_path=parsed_args['emb_model_path'],
             emb_model_method=parsed_args['emb_model_method'],
-            emb_model_args=parsed_args['emb_model_args']
+            emb_model_args=parsed_args['emb_model_args'],
+            starspace_path='./test'
         )
 
     elif parsed_args['task'] == Tasks.EVALUATE.value:
@@ -128,6 +131,8 @@ def _add_subparsers_for_fine_tune(subparsers):
                                   help='Path to file containing the validation data.')
     fine_tune_parser.add_argument('--model-type', type=str, choices=[v.value for v in ModelType],
                                   default=ModelType.BERT_ONLY.value, help='Model type to use')
+    fine_tune_parser.add_argument('--bert-model-path', type=_util.argparse_type_file_path,
+                                  help='Path to stored BERT model to use')
     fine_tune_parser.add_argument('--emb-model-path', type=_util.argparse_type_file_path,
                                   help='Path to stored model to use in an ensemble with BERT.')
     fine_tune_parser.add_argument('--hidden-size', type=_util.argparse_type_positive_int, default=32,
@@ -140,6 +145,8 @@ def _add_subparsers_for_fine_tune(subparsers):
                                   help='Maximum number of training steps to perform.')
     fine_tune_parser.add_argument('--base-bert-model', type=str, default='bert-base-cased',
                                   help='Base BERT model to use.')
+    fine_tune_parser.add_argument('--freeze-bert-model', action='store_true',
+                                  help='Freeze the BERT model during fine-tuning')
     fine_tune_parser.add_argument('--freeze-emb-model', action='store_true',
                                   help='Freeze the ensembled model during fine-tuning')
     fine_tune_parser.add_argument('--model-save-path', type=argparse_type_dir_path, default='.',

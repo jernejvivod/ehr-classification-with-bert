@@ -23,10 +23,12 @@ def fine_tune_bert(model_type: str,
                    step_lim=None,
                    base_bert_model: str = 'bert-base-cased',
                    hidden_size: int = 32,
+                   freeze_bert_model: bool = False,
                    freeze_emb_model: bool = False,
                    model_save_path: str = '.',
                    n_epochs: int = 4,
                    train_data_path: Union[str, List[str]] = None,
+                   bert_model_path: str = None,
                    emb_model_path: str = None,
                    emb_model_method: str = None,
                    emb_model_args: str = '',
@@ -42,10 +44,12 @@ def fine_tune_bert(model_type: str,
     :param step_lim: Maximum number of training steps to perform
     :param base_bert_model: Base BERT model to use
     :param hidden_size: Size of the hidden layers in the classifier (if using ensemble model)
+    :param freeze_bert_model: Freeze the BERT model during fine-tuning
     :param freeze_emb_model: Freeze the ensembled model during fine-tuning
     :param model_save_path: Path to directory in which to save the fine-tuned model
     :param n_epochs: Number of training epochs to perform
     :param train_data_path: Path(s) to training data in FastText format
+    :param bert_model_path: Path to stored BERT model to use
     :param emb_model_path: Path to stored model to use in an ensemble with BERT
     :param emb_model_method: Embedding method to use ('word2vec', 'fasttext', 'doc2vec', or 'starspace') if ensembling
     with an aggregate embeddings-based model
@@ -64,8 +68,10 @@ def fine_tune_bert(model_type: str,
         base_bert_model=base_bert_model,
         n_labels=n_labels,
         hidden_size=hidden_size,
+        freeze_bert_model=freeze_bert_model,
         freeze_emb_model=freeze_emb_model,
         emb_model_train_data_path=train_data_path if isinstance(train_data_path, str) else train_data_path[1],  # pass second dataset if multiple datasets used
+        bert_model_path=bert_model_path,
         emb_model_path=emb_model_path,
         emb_model_method=emb_model_method,
         emb_model_args=emb_model_args,
@@ -216,8 +222,10 @@ def get_model(model_type: str,
               base_bert_model: str,
               n_labels: int,
               hidden_size: int = 32,
+              freeze_bert_model: bool = False,
               freeze_emb_model: bool = False,
               emb_model_train_data_path: str = None,
+              bert_model_path: str = None,
               emb_model_path: str = None,
               emb_model_method: str = 'word2vec',
               emb_model_args: str = '',
@@ -229,8 +237,10 @@ def get_model(model_type: str,
     :param base_bert_model: Hugging Face BERT model to use
     :param n_labels: Number of unique labels in the dataset
     :param hidden_size: Size of the hidden layers in the classifier (if using ensemble model)
+    :param freeze_bert_model: Freeze the BERT model during fine-tuning
     :param freeze_emb_model: Freeze the ensembled model during fine-tuning
     :param emb_model_train_data_path: Path to training data in FastText format for the ensembled embeddings-based model
+    :param bert_model_path: Path to stored BERT model to use
     :param emb_model_path: Path to stored model to use in an ensemble with BERT
     :param emb_model_method: Embedding method to use ('word2vec', 'fasttext', 'doc2vec', or 'starspace') if ensembling
     with an aggregate embeddings-based model
@@ -240,10 +250,14 @@ def get_model(model_type: str,
     """
 
     # get BERT model
-    bert_model = AutoModelForSequenceClassification.from_pretrained(
-        base_bert_model,
-        num_labels=n_labels
-    ).to(device)
+    if bert_model_path is None:
+        bert_model = AutoModelForSequenceClassification.from_pretrained(
+            base_bert_model,
+            num_labels=n_labels
+        ).to(device)
+    else:
+        bert_model = torch.load(bert_model_path, map_location=device)
+        bert_model.train()
 
     # get model instance to use
     if model_type == ModelType.BERT_ONLY.value:
@@ -257,7 +271,13 @@ def get_model(model_type: str,
             method_args=emb_model_args,
             **emb_model_kwargs
         )
-        return EnsembleBertModel(bert_model, emb_model, hidden_size, freeze_emb_model=freeze_emb_model)
+        return EnsembleBertModel(
+            bert_model,
+            emb_model,
+            hidden_size,
+            freeze_bert_model=freeze_bert_model,
+            freeze_emb_model=freeze_emb_model
+        )
     elif model_type == ModelType.ENSEMBLE_CNN.value:
         # BERT ENSEMBLED WITH A CNN-BASED MODEL
         cnn_emb_model = torch.load(emb_model_path, map_location=device)
@@ -265,6 +285,7 @@ def get_model(model_type: str,
             bert_model,
             cnn_emb_model.feature_extractor,
             hidden_size,
+            freeze_bert_model=freeze_bert_model,
             freeze_emb_model=freeze_emb_model
         )
     else:

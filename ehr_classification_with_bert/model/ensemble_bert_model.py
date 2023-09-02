@@ -5,7 +5,7 @@ from ehr_classification_with_bert import device
 
 
 class EnsembleBertModel(nn.Module):
-    def __init__(self, bert_model, emb_model, hidden_size=2048, freeze_emb_model=True):
+    def __init__(self, bert_model, emb_model, hidden_size=2048, freeze_bert_model=True, freeze_emb_model=True):
         """Ensemble model combining BERT and an embedding model that takes in text/documents and produces their
         embeddings. The BERT's last CLS token hidden state is concatenated with the feature vector produced by the
         embedding model. A series of fully-connected layers is then applied to perform classification.
@@ -13,12 +13,19 @@ class EnsembleBertModel(nn.Module):
         :param bert_model: Hugging Face BERT model to use in the ensemble
         :param emb_model: Embedding model to use in the ensemble
         :param hidden_size: Size of the hidden layers in the classifier
+        :param freeze_emb_model: Freeze the layers of the BERT model (if using a PyTorch model)
         :param freeze_emb_model: Freeze the layers of the embedding model (if using a PyTorch model)
         """
         super().__init__()
 
         self.bert_model = bert_model
         self.emb_model = emb_model
+
+        self.emb_model_vector_size = self.emb_model([['test']]).shape[1]
+
+        if freeze_bert_model:
+            for param in self.bert_model.parameters():
+                param.requires_grad = False
 
         if isinstance(self.emb_model, nn.Module) and freeze_emb_model:
             for param in self.emb_model.parameters():
@@ -29,7 +36,7 @@ class EnsembleBertModel(nn.Module):
         # TODO study replacing with just a single linear layer
         self.classifier = nn.Sequential(
             nn.Dropout(p=0.5),
-            nn.Linear(self.bert_model.config.hidden_size + self.emb_model.vector_size, hidden_size),
+            nn.Linear(self.bert_model.config.hidden_size + self.emb_model_vector_size, hidden_size),
             self.relu,
 
             nn.Dropout(p=0.5),
