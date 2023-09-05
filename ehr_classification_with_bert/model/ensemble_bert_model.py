@@ -20,7 +20,6 @@ class EnsembleBertModel(nn.Module):
 
         self.bert_model = bert_model
         self.emb_model = emb_model
-        self.emb_model.device = 'cpu'
 
         self.emb_model_vector_size = self.emb_model([['test']]).shape[1]
 
