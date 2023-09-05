@@ -78,7 +78,11 @@ def evaluate_model_segmented(model, eval_dataloader: DataLoader, unique_labels, 
     for batch in eval_dataloader:
         # compute prediction
         with torch.no_grad():
-            logits = todo(model, batch)
+            outputs = model(**{k: v[0].to(device) if (hasattr(v, 'to') and callable(getattr(v, 'to'))) else v
+                               for k, v in batch.items()})
+
+        # accumulate values
+        logits = outputs.logits if hasattr(outputs, 'logits') else outputs
 
         # accumulate values
         mean_logits_for_segments = torch.mean(logits, dim=0)  # compute mean logits for segments
