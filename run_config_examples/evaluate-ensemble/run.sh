@@ -10,7 +10,7 @@ output_dir="$script_path/results"
 source "$script_path/config/config.cfg"
 
 data_file_path_p1=$(find "$script_path/data/" -name '*p1_test.txt' | sort | tr '\n' ' ')
-data_file_path_p2=$(find "$script_path/data/" -name '*p1_test.txt' | sort | tr '\n' ' ')
+data_file_path_p2=$(find "$script_path/data/" -name '*p2_test.txt' | sort | tr '\n' ' ')
 model_path=$(find "$script_path/data/" -name '*.pth' | head -n 1)
 
 if [[ -z "$data_file_path_p1" ]]; then
