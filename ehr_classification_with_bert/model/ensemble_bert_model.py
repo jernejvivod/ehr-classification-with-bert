@@ -35,15 +35,7 @@ class EnsembleBertModel(nn.Module):
 
         # TODO study replacing with just a single linear layer
         self.classifier = nn.Sequential(
-            nn.Dropout(p=0.5),
-            nn.Linear(self.bert_model.config.hidden_size + self.emb_model_vector_size, hidden_size),
-            self.relu,
-
-            nn.Dropout(p=0.5),
-            nn.Linear(hidden_size, hidden_size),
-            self.relu,
-
-            nn.Linear(hidden_size, self.bert_model.config.num_labels)
+            nn.Linear(self.bert_model.config.hidden_size + self.emb_model_vector_size, self.bert_model.config.num_labels)
         )
 
     def forward(self, **kwargs):
