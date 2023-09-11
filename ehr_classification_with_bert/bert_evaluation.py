@@ -75,15 +75,24 @@ def evaluate_model_segmented(model, eval_dataloader: DataLoader, unique_labels, 
 
     progress_bar = tqdm(range(len(eval_dataloader)))
 
+    c = 2
+
     for batch in eval_dataloader:
         # compute prediction
         with torch.no_grad():
             logits = todo(model, batch)
 
         # accumulate values
-        mean_logits_for_segments = torch.mean(logits, dim=0)  # compute mean logits for segments
-        y_proba_nxt = nnf.softmax(mean_logits_for_segments, dim=0).unsqueeze(dim=0)
-        predicted_proba = torch.cat((predicted_proba, y_proba_nxt), dim=0)
+        prob_for_segments = nnf.softmax(logits, dim=1)  # compute mean logits for segments
+        n = prob_for_segments.size()[0]
+        p_max = torch.max(prob_for_segments[:, 1])
+        p_mean = torch.mean(prob_for_segments[:, 1])
+        p = (p_max + p_mean * (n/c))/(1 + n / c)
+        res = torch.tensor([[1 - p, p]])
+
+
+        # y_proba_nxt = nnf.softmax(mean_logits_for_segments, dim=0).unsqueeze(dim=0)
+        predicted_proba = torch.cat((predicted_proba, res), dim=0)
         y_true = torch.cat((y_true, batch['labels'][0][0].view(1).to(device)))
 
         progress_bar.update(1)
